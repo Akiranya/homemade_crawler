@@ -16,7 +16,8 @@ public class Main {
         Set<HTMLWrapper> crawledFull = new HashSet<>();
 
         //        HTMLWrapper rootHTML = crawler.request(new SimpleURL("http://www.canberratimes.com.au/"));
-        HTMLWrapper rootHTML = crawler.request(new SimpleURL("http://comp3310.ddns.net:7880"));
+//        HTMLWrapper rootHTML = crawler.request(new SimpleURL("http://comp3310.ddns.net:7880"));
+        HTMLWrapper rootHTML = crawler.request(new SimpleURL("http://map.mimaru.me:8123"));
         //        HTMLWrapper rootHTML = crawler.request(new SimpleURL("http://comp3310.ddns.net:7880/F/30.html"));
 
         crawled.add(rootHTML.getURL());
@@ -78,7 +79,8 @@ public class Main {
         // A list of invalid URLs (not) found (404)
         System.out.println("A list of invalid URLs (not) found (404):");
         crawledFull.stream()
-                   .filter(html -> !html.getStatusCode().isValid())
+//                   .filter(html -> !html.getStatusCode().isValid())
+                   .filter(html -> html.getStatusCode() == HTTPStatusCode.NOT_FOUND)
                    .forEach(html -> System.out.printf(" - %s (Reason: %s %s)\n", html.getURL().getRawURL(), html.getStatusCode().code, html.getStatusCode()));
 
         // A list of on-site redirected URLs found (30x) and where they redirect to

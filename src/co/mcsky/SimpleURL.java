@@ -23,7 +23,7 @@ class SimpleURL {
     SimpleURL(String rawURL) {
         this.rawURL = rawURL;
 
-        // Debugger for this regex: https://regex101.com/r/Zx74z0/6
+        // Debugger for this regex: https://regex101.com/r/Zx74z0/11
         String regex = "^(?:([^:/?#]+):)?(?://([^/?:#]*)(?::(\\d*))?)?([^?#]+)?(?:\\?([^#]*))?(?:#(.+))?";
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(this.rawURL);

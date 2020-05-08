@@ -65,10 +65,10 @@ public class SimpleCrawler {
         // Print out what was crawled
         System.out.println("Crawler - Request: \"" + request.replaceAll("([\r\n]*)", "") + "\"");
         System.out.println("Crawler - URL: " + url.getRawURL());
-        System.out.println("Crawler - Host: " + url.getHost());
-        System.out.println("Crawler - Port: " + url.getPort());
-        System.out.println("Crawler - Protocol: " + url.getProtocol());
-        System.out.println("Crawler - Abs. path: " + url.getAbsPath());
+//        System.out.println("Crawler - Host: " + url.getHost());
+//        System.out.println("Crawler - Port: " + url.getPort());
+//        System.out.println("Crawler - Protocol: " + url.getProtocol());
+//        System.out.println("Crawler - Abs. path: " + url.getAbsPath());
 //        System.out.println("Crawler - Query: " + url.getQuery());
 //        System.out.println("Crawler - Fragment: " + url.getFragment());
         System.out.println("Crawler - Status: " + Optional.ofNullable(wrapper).orElse(new HTMLWrapper(url, "")).getStatusCode());
