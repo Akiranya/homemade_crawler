@@ -37,7 +37,7 @@ public class StringUtil {
      * presenting, otherwise returns {@code null}
      */
     public static String extractModifiedTime(String HTMLRawContent) {
-        Pattern pattern = Pattern.compile("Last-Modified: (.*)");
+        Pattern pattern = Pattern.compile("Last-Modified: (.+)");
         Matcher matcher = pattern.matcher(HTMLRawContent);
         if (matcher.find()) {
             return matcher.toMatchResult().group(1);
@@ -52,7 +52,7 @@ public class StringUtil {
      * returns {@link HTTPStatusCode#UNKNOWN}
      */
     public static HTTPStatusCode extractStatusCode(String HTMLRawContent) {
-        Pattern pattern = Pattern.compile("HTTP/\\d\\.\\d (\\d\\d\\d) ");
+        Pattern pattern = Pattern.compile("HTTP/\\d\\.\\d (\\d{3}) ");
         Matcher matcher = pattern.matcher(HTMLRawContent);
         if (matcher.find()) {
             return Optional.ofNullable(matcher.group(1))
@@ -71,7 +71,7 @@ public class StringUtil {
      * presenting, otherwise returns {@code -1}
      */
     public static int extractContentLength(String HTMLRawContent) {
-        Pattern pattern = Pattern.compile("Content-Length: (\\d*)");
+        Pattern pattern = Pattern.compile("Content-Length: (\\d+)");
         Matcher matcher = pattern.matcher(HTMLRawContent);
         if (matcher.find()) {
             return parseInt(matcher.group(1));
