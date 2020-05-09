@@ -1,16 +1,16 @@
-package co.mcsky;
+package co.mcsky.struct;
 
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.lang.Integer.parseInt;
 
 /**
- * Provides convenient methods for extracting relevant information from an URL.
+ * Represents an {@code URL}. See <a href="https://www.rfc-editor.org/rfc/rfc1945.html#section-3.2.2">RFC1945
+ * 3.2.2</a>.
  */
-class SimpleURL {
+public class SimpleURL {
 
     private final String rawURL;
     private final String host;
@@ -20,13 +20,13 @@ class SimpleURL {
     private final String query;
     private final String fragment;
 
-    SimpleURL(String rawURL) {
+    public SimpleURL(String rawURL) {
         this.rawURL = rawURL;
 
         // Debugger for this regex: https://regex101.com/r/Zx74z0/11
-        String regex = "^(?:([^:/?#]+):)?(?://([^/?:#]*)(?::(\\d*))?)?([^?#]+)?(?:\\?([^#]*))?(?:#(.+))?";
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(this.rawURL);
+        var regex = "^(?:([^:/?#]+):)?(?://([^/?:#]*)(?::(\\d*))?)?([^?#]+)?(?:\\?([^#]*))?(?:#(.+))?";
+        var pattern = Pattern.compile(regex);
+        var matcher = pattern.matcher(this.rawURL);
         if (!matcher.find()) {
             throw new IllegalArgumentException("Cannot recognize URL: " + rawURL);
         }

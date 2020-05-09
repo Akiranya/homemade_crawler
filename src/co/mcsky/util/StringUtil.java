@@ -1,11 +1,10 @@
 package co.mcsky.util;
 
-import co.mcsky.StatusCode;
+import co.mcsky.struct.StatusCode;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.lang.Integer.parseInt;
@@ -25,8 +24,8 @@ public class StringUtil {
      * is any, otherwise returns an empty {@link List}
      */
     public static List<String> extractURL(String HTMLRawContent) {
-        Pattern pattern = Pattern.compile("<a href=\"(.*?)\">.*</a>", Pattern.MULTILINE);
-        Matcher matcher = pattern.matcher(HTMLRawContent);
+        var pattern = Pattern.compile("<a href=\"(.*?)\">.*</a>", Pattern.MULTILINE);
+        var matcher = pattern.matcher(HTMLRawContent);
         List<String> urls = new ArrayList<>();
         matcher.results().forEach(r -> urls.add(r.group(1)));
         return urls;
@@ -39,8 +38,8 @@ public class StringUtil {
      * presenting, otherwise returns {@code null}
      */
     public static String extractModifiedTime(String HTMLRawContent) {
-        Pattern pattern = Pattern.compile("Last-Modified: (.+)");
-        Matcher matcher = pattern.matcher(HTMLRawContent);
+        var pattern = Pattern.compile("Last-Modified: (.+)");
+        var matcher = pattern.matcher(HTMLRawContent);
         if (matcher.find()) {
             return matcher.toMatchResult().group(1);
         }
@@ -54,8 +53,8 @@ public class StringUtil {
      * returns {@link StatusCode#UNKNOWN}
      */
     public static StatusCode extractStatusCode(String HTMLRawContent) {
-        Pattern pattern = Pattern.compile("HTTP/\\d\\.\\d (\\d{3}) ");
-        Matcher matcher = pattern.matcher(HTMLRawContent);
+        var pattern = Pattern.compile("HTTP/\\d\\.\\d (\\d{3}) ");
+        var matcher = pattern.matcher(HTMLRawContent);
         if (matcher.find()) {
             return Optional.ofNullable(matcher.group(1))
                            .or(() -> Optional.of("0")) // If the matcher returns null, then parse 0 (UNKNOWN) instead
@@ -73,8 +72,8 @@ public class StringUtil {
      * presenting, otherwise returns {@code -1}
      */
     public static int extractContentLength(String HTMLRawContent) {
-        Pattern pattern = Pattern.compile("Content-Length: (\\d+)");
-        Matcher matcher = pattern.matcher(HTMLRawContent);
+        var pattern = Pattern.compile("Content-Length: (\\d+)");
+        var matcher = pattern.matcher(HTMLRawContent);
         if (matcher.find()) {
             return parseInt(matcher.group(1));
         }
@@ -89,8 +88,8 @@ public class StringUtil {
      */
     public static List<String> extractNonHTMLObjects(String HTMLRawContent) {
         // For now it just finds all <img> tags on a html page
-        Pattern pattern = Pattern.compile("<img src=\"(.*)\" .*>");
-        Matcher matcher = pattern.matcher(HTMLRawContent);
+        var pattern = Pattern.compile("<img src=\"(.*)\" .*>");
+        var matcher = pattern.matcher(HTMLRawContent);
         List<String> images = new ArrayList<>();
         matcher.results().forEach(img -> images.add(img.group(1)));
         return images;
@@ -103,8 +102,8 @@ public class StringUtil {
      * otherwise returns {@code null}
      */
     public static String extractLocation(String HTMLRawContent) {
-        Pattern pattern = Pattern.compile("Location: (.+)");
-        Matcher matcher = pattern.matcher(HTMLRawContent);
+        var pattern = Pattern.compile("Location: (.+)");
+        var matcher = pattern.matcher(HTMLRawContent);
         if (matcher.find()) {
             return matcher.group(1);
         }

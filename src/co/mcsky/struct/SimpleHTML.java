@@ -1,4 +1,4 @@
-package co.mcsky;
+package co.mcsky.struct;
 
 import co.mcsky.util.StringUtil;
 
@@ -9,47 +9,51 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * <p>This class represents a html page related to a instance of {@link
- * SimpleURL}. The html page may or may not exist, depending on whether {@link
- * SimpleURL} links to a valid html page or not during the initialization of
- * this class.</p>
+ * <p>
+ * This class represents a html page related to a instance of {@link SimpleURL}.
+ * The html page may or may not exist, depending on whether {@link SimpleURL}
+ * links to a valid html page or not during the instantiation of this class.
+ * </p>
  *
- * <p>In other words, this class at least contains a instance of {@link
- * SimpleURL}. If the {@link SimpleURL#getRawURL()} is a valid URL (say, we can
- * obtain a HTML page from it, including 40x and 50x) then this class will
- * contain relevant information about the html page.</p>
+ * <p>
+ * In other words, this class at least contains a instance of {@link SimpleURL}.
+ * If the {@link SimpleURL#getRawURL()} is a valid URL (say, we can obtain a
+ * HTML page from it, including 40x and 50x) then this class will contain
+ * relevant information about the html page.
+ * </p>
  *
- * <p>This class provides convenient methods for getting relevant information
- * about its internal html page (say, {@link #getModifiedTime()}). Typically,
- * these getter methods are there for generating a good report for the
- * assignment ;)</p>
+ * <p>
+ * This class provides convenient methods for getting relevant information about
+ * its internal html page (say, {@link #getModifiedTime()}). Typically, these
+ * getter methods are there for generating a good report for the assignment ;)
+ * </p>
  */
-public class HTMLWrapper {
+public class SimpleHTML {
 
     private final SimpleURL url; // This URL should be given by the crawler.
-    private final List<SimpleURL> innerURL;
-
     private final String raw;
+    private final List<SimpleURL> innerURL;
     private final int contentLength;
     private final StatusCode statusCode;
     private final LocalDateTime modifiedTime;
     private final List<String> innerNonHTMLObjects;
-    private final SimpleURL location;
+    private final SimpleLocation location;
 
-    public HTMLWrapper(SimpleURL url, String raw) {
+    public SimpleHTML(SimpleURL url, String raw) {
         this.url = url;
+
         this.raw = raw; // Raw byte messages from sockets
-        this.statusCode = StringUtil.extractStatusCode(this.raw);
+        this.statusCode = StringUtil.extractStatusCode(raw);
 
         // We parse the modified time so that we can compare it easily for the report
-        this.modifiedTime = Optional.ofNullable(StringUtil.extractModifiedTime(this.raw))
-                                    .map(s -> LocalDateTime.parse(s, DateTimeFormatter.RFC_1123_DATE_TIME))
+        this.modifiedTime = Optional.ofNullable(StringUtil.extractModifiedTime(raw))
+                                    .map(timeString -> LocalDateTime.parse(timeString, DateTimeFormatter.RFC_1123_DATE_TIME))
                                     .orElse(null);
 
-        this.contentLength = StringUtil.extractContentLength(this.raw); // This is the size of html page, I think?
-        this.innerNonHTMLObjects = StringUtil.extractNonHTMLObjects(this.raw); // NonHTMLObjects only include images for now
-        this.location = Optional.ofNullable(StringUtil.extractLocation(this.raw))
-                                .map(SimpleURL::new)
+        this.contentLength = StringUtil.extractContentLength(raw); // This is the size of html page, I think?
+        this.innerNonHTMLObjects = StringUtil.extractNonHTMLObjects(raw); // NonHTMLObjects only include images for now
+        this.location = Optional.ofNullable(StringUtil.extractLocation(raw))
+                                .map(urlString -> new SimpleLocation(this.url, new SimpleURL(urlString)))
                                 .orElse(null);
 
         // Notes: some exceptional URL
@@ -61,24 +65,24 @@ public class HTMLWrapper {
 
         // We try to format the rawURL into meaningful format so that the URL
         // can be recognized and crawled by SimpleCrawler.request(URL).
-        this.innerURL = StringUtil.extractURL(this.raw)
+        this.innerURL = StringUtil.extractURL(raw)
                                   .stream()
-                                  .map(rawURL -> {
-                                      if (rawURL.startsWith("http://") || rawURL.startsWith("https://")) {
+                                  .map(urlString -> {
+                                      if (urlString.startsWith("http://") || urlString.startsWith("https://")) {
                                           // Case where the URL is already in full format
                                           // e.g.1 http://comp3310.ddns.net/B/29.html
                                           // e.g.2 http://comp3310.ddns.net:7880/C/307.html
-                                          return new SimpleURL(rawURL);
+                                          return new SimpleURL(urlString);
                                       } else {
                                           // Case where the URL is not in full format
                                           // then we try to format it into full URL.
                                           // e.g. A/30.html, /B/29.html
                                           String baseURL = url.getProtocol() + "://" + url.getHost() + ":" + url.getPort();
                                           String fullURL;
-                                          if (rawURL.startsWith("/")) {
-                                              fullURL = baseURL + rawURL;
+                                          if (urlString.startsWith("/")) {
+                                              fullURL = baseURL + urlString;
                                           } else {
-                                              fullURL = baseURL + "/" + rawURL;
+                                              fullURL = baseURL + "/" + urlString;
                                           }
                                           return new SimpleURL(fullURL);
                                       }
@@ -123,8 +127,8 @@ public class HTMLWrapper {
      * @return the {@code Modified-Time} of the html page if presenting,
      * otherwise returns null
      */
-    public LocalDateTime getModifiedTime() {
-        return modifiedTime;
+    public Optional<LocalDateTime> getModifiedTime() {
+        return Optional.ofNullable(modifiedTime);
     }
 
     /**
@@ -150,8 +154,8 @@ public class HTMLWrapper {
      * @return the {@code Location} of the html page if presenting, otherwise
      * returns null (as {@code Location} only exists in 30x page)
      */
-    public SimpleURL getLocation() {
-        return location;
+    public Optional<SimpleLocation> getLocation() {
+        return Optional.ofNullable(location);
     }
 
     @Override
@@ -159,7 +163,7 @@ public class HTMLWrapper {
         if (obj == null) {
             return false;
         }
-        if (!(obj instanceof HTMLWrapper)) {
+        if (!(obj instanceof SimpleHTML)) {
             return false;
         }
         return obj.hashCode() == this.hashCode();
