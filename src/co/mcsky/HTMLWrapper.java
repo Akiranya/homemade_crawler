@@ -9,65 +9,69 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * <p>This is a wrapper class for a {@link SimpleURL} which may or may not
- * give back a HTML page. This means that this class at least contains a
- * instance of {@link SimpleURL}. If the {@link SimpleURL#getRawURL()} is a
- * valid URL (say, we can obtain a HTML page from it, including 40x and 50x
- * page) then this class will contain relevant information about the HTML
- * page.</p>
+ * <p>This class represents a html page related to a instance of {@link
+ * SimpleURL}. The html page may or may not exist, depending on whether {@link
+ * SimpleURL} links to a valid html page or not during the initialization of
+ * this class.</p>
+ *
+ * <p>In other words, this class at least contains a instance of {@link
+ * SimpleURL}. If the {@link SimpleURL#getRawURL()} is a valid URL (say, we can
+ * obtain a HTML page from it, including 40x and 50x) then this class will
+ * contain relevant information about the html page.</p>
  *
  * <p>This class provides convenient methods for getting relevant information
- * about its internal HTML page (say, {@link #getModifiedTime()}). Typically,
- * the relevant information is for generating a good report for the assignment
- * ;)</p>
+ * about its internal html page (say, {@link #getModifiedTime()}). Typically,
+ * these getter methods are there for generating a good report for the
+ * assignment ;)</p>
  */
 public class HTMLWrapper {
 
     private final SimpleURL url; // This URL should be given by the crawler.
     private final List<SimpleURL> innerURL;
 
-    private final String rawContent;
+    private final String raw;
     private final int contentLength;
-    private final HTTPStatusCode statusCode;
+    private final StatusCode statusCode;
     private final LocalDateTime modifiedTime;
     private final List<String> innerNonHTMLObjects;
     private final SimpleURL location;
 
-    public HTMLWrapper(SimpleURL url, String rawContent) {
+    public HTMLWrapper(SimpleURL url, String raw) {
         this.url = url;
-        this.rawContent = rawContent; // Raw byte messages from sockets
-        this.statusCode = StringUtil.extractStatusCode(this.rawContent);
+        this.raw = raw; // Raw byte messages from sockets
+        this.statusCode = StringUtil.extractStatusCode(this.raw);
 
-        // We parse the modified time so that we can compare it easily for reporting
-        this.modifiedTime = Optional.ofNullable(StringUtil.extractModifiedTime(this.rawContent))
+        // We parse the modified time so that we can compare it easily for the report
+        this.modifiedTime = Optional.ofNullable(StringUtil.extractModifiedTime(this.raw))
                                     .map(s -> LocalDateTime.parse(s, DateTimeFormatter.RFC_1123_DATE_TIME))
                                     .orElse(null);
 
-        this.contentLength = StringUtil.extractContentLength(this.rawContent); // This is the size of html page, I think?
-        this.innerNonHTMLObjects = StringUtil.extractNonHTMLObjects(this.rawContent); // NonHTMLObjects only include images for now
-        this.location = Optional.ofNullable(StringUtil.extractLocation(this.rawContent))
+        this.contentLength = StringUtil.extractContentLength(this.raw); // This is the size of html page, I think?
+        this.innerNonHTMLObjects = StringUtil.extractNonHTMLObjects(this.raw); // NonHTMLObjects only include images for now
+        this.location = Optional.ofNullable(StringUtil.extractLocation(this.raw))
                                 .map(SimpleURL::new)
                                 .orElse(null);
 
-        // Exceptional URL
+        // Notes: some exceptional URL
         // http://comp3310.ddns.net/B/29.html
         // http://www.canberratimes.com.au/
         // http://comp3310.ddns.net:7880/C/307.html
         // http://www.canberratimes.com.au/
         // http://comp3310.ddns.net:7880/B/23.html (contains canberra times)
 
-        // We always store the inner URLs in full URL format
-        // innerURl 必须可以直接 pass 到 ICrawler.request(URL) 让其成功爬虫
-        this.innerURL = StringUtil.extractURL(this.rawContent)
+        // We try to format the rawURL into meaningful format so that the URL
+        // can be recognized and crawled by SimpleCrawler.request(URL).
+        this.innerURL = StringUtil.extractURL(this.raw)
                                   .stream()
                                   .map(rawURL -> {
                                       if (rawURL.startsWith("http://") || rawURL.startsWith("https://")) {
-                                          // Case where the URL is in full format
+                                          // Case where the URL is already in full format
                                           // e.g.1 http://comp3310.ddns.net/B/29.html
                                           // e.g.2 http://comp3310.ddns.net:7880/C/307.html
                                           return new SimpleURL(rawURL);
                                       } else {
                                           // Case where the URL is not in full format
+                                          // then we try to format it into full URL.
                                           // e.g. A/30.html, /B/29.html
                                           String baseURL = url.getProtocol() + "://" + url.getHost() + ":" + url.getPort();
                                           String fullURL;
@@ -83,57 +87,68 @@ public class HTMLWrapper {
     }
 
     /**
-     * @return the whole raw HTML page string
+     * @return the whole raw HTML page string (say, the raw html string starting
+     * with "HTTP/1.1 200 OK ..."
      */
-    public String getRawContent() {
-        return rawContent;
+    public String getRaw() {
+        return raw;
     }
 
     /**
-     * @return the URL of this page
+     * @return the URL of this page (this is not the URL(s) contained in this
+     * html page. For the URL(s) contained in the html page, see {@link
+     * #getInnerURL()})
      */
     public SimpleURL getURL() {
         return url;
     }
 
     /**
-     * @return a {@link List} of URLs inside the html page
+     * @return a {@link List} of URLs inside the html page if presenting,
+     * otherwise returns empty {@link List}
      */
     public List<SimpleURL> getInnerURL() {
         return innerURL;
     }
 
     /**
-     * @return a {@link List} of non-html objects inside the html page
+     * @return a {@link List} of non-html objects inside the html page if
+     * presenting, otherwise returns empty {@link List}
      */
     public List<String> getNonHTMLObjects() {
         return innerNonHTMLObjects;
     }
 
     /**
-     * @return the {@code Modified-Time} of the html page
+     * @return the {@code Modified-Time} of the html page if presenting,
+     * otherwise returns null
      */
     public LocalDateTime getModifiedTime() {
         return modifiedTime;
     }
 
     /**
-     * @return the status code of the html page. If we cannot access to the html
-     * page via the URL, then returns {@link HTTPStatusCode#UNKNOWN} otherwise
+     * @return the status code of the html page when it is obtained in the first
+     * place. That is, if this html is 30x, then we keep the 30x page instead of
+     * the page which it redirects to. If we cannot access to the html page via
+     * the URL, then returns {@link StatusCode#UNKNOWN} otherwise
      */
-    public HTTPStatusCode getStatusCode() {
+    public StatusCode getStatusCode() {
         return statusCode;
     }
 
     /**
-     * @return the {@code Content-Length} of the html page
+     * @return the {@code Content-Length} of the html page if presenting. If the
+     * html page does not exist at all (say, I/O exception), returns {@code -1}
+     * otherwise
      */
     public int getContentLength() {
         return contentLength;
     }
 
     /**
-     * @return the {@code Location} of the html page
+     * @return the {@code Location} of the html page if presenting, otherwise
+     * returns null (as {@code Location} only exists in 30x page)
      */
     public SimpleURL getLocation() {
         return location;

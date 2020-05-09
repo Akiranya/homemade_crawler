@@ -30,6 +30,12 @@ class SimpleURL {
         if (!matcher.find()) {
             throw new IllegalArgumentException("Cannot recognize URL: " + rawURL);
         }
+
+        /*
+            We ensure that each member has some value assigned.
+            Should save me from dealing with messy NPEs in other classes.
+        */
+
         // 1st capturing group is the protocol
         this.protocol = Optional.ofNullable(matcher.group(1)).orElseThrow(() -> new NoSuchElementException("Protocol cannot be empty"));
 

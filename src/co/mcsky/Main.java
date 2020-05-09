@@ -9,7 +9,10 @@ public class Main {
     public static void main(String[] args) {
         SimpleCrawler crawler = new SimpleCrawler(2L * 1000L);
 
-        /* Breadth-first search the site */
+        /*
+            Breadth-first search the site.
+            Theoretically, it can crawl URLs of arbitrary depth on the site.
+        */
 
         Queue<HTMLWrapper> que = new LinkedList<>();
         Set<SimpleURL> crawled = new HashSet<>(); // Use URL to identify distinct pages
@@ -29,7 +32,9 @@ public class Main {
             }
         }
 
-        /* Generating report */
+        /*
+            Generating report
+        */
 
         out.println("* Crawling has completed...");
         out.println("* Generating report...\n");
@@ -40,7 +45,7 @@ public class Main {
         // Print the number of html pages and the number of non-html objects on the site (e.g. images)
         out.printf("The number of html pages on the site: %s\n",
                    crawledFull.stream()
-                              .filter(html -> html.getStatusCode() == HTTPStatusCode.OK)
+                              .filter(html -> html.getStatusCode() == StatusCode.OK)
                               .count());
         out.printf("The number of non-html objects on the site: %s\n",
                    crawledFull.stream()
@@ -54,7 +59,7 @@ public class Main {
                    .ifPresentOrElse(html -> out.printf("Smallest html page: %s (%s bytes)\n", html.getURL().getRawURL(), html.getContentLength()),
                                     () -> out.println("No smallest html page found."));
         crawledFull.stream()
-                   .filter(html -> html.getStatusCode() == HTTPStatusCode.OK)
+                   .filter(html -> html.getStatusCode() == StatusCode.OK)
                    .max(Comparator.comparingInt(HTMLWrapper::getContentLength))
                    .ifPresentOrElse(html -> out.printf("Largest html page: %s (%s bytes)\n", html.getURL().getRawURL(), html.getContentLength()),
                                     () -> out.println("No largest html page found."));
@@ -78,7 +83,7 @@ public class Main {
         out.println("A list of invalid URLs (not) found (404):");
         crawledFull.stream()
                    //                   .filter(html -> !html.getStatusCode().isValid())
-                   .filter(html -> html.getStatusCode() == HTTPStatusCode.NOT_FOUND)
+                   .filter(html -> html.getStatusCode() == StatusCode.NOT_FOUND)
                    .forEach(html -> out.printf(" - %s (Reason: %s %s)\n", html.getURL().getRawURL(), html.getStatusCode().code, html.getStatusCode()));
 
         // A list of on-site redirected URLs found (30x) and where they redirect to

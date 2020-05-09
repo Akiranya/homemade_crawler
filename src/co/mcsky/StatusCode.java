@@ -4,7 +4,7 @@ package co.mcsky;
  * Contains status code and reason phrases. See <a href="https://www.rfc-editor.org/rfc/rfc1945.html#section-6.1.1">rfc1945
  * section 6.1.1</a>.
  */
-public enum HTTPStatusCode {
+public enum StatusCode {
     OK(200),
     CREATED(201),
     ACCEPTED(202),
@@ -24,11 +24,11 @@ public enum HTTPStatusCode {
 
     final int code;
 
-    HTTPStatusCode(int code) {
+    StatusCode(int code) {
         this.code = code;
     }
 
-    public static HTTPStatusCode matchCode(int code) {
+    public static StatusCode matchCode(int code) {
 
         switch (code) {
             case 200:
@@ -66,7 +66,7 @@ public enum HTTPStatusCode {
         }
     }
 
-    // TODO what is a valid URL?
+    // TODO What status codes should be classified as valid URLs?
     public boolean isValid() {
         switch (this) {
             case UNKNOWN:

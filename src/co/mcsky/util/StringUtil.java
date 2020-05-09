@@ -1,6 +1,6 @@
 package co.mcsky.util;
 
-import co.mcsky.HTTPStatusCode;
+import co.mcsky.StatusCode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +12,9 @@ import static java.lang.Integer.parseInt;
 
 /**
  * This class simply extracts specified strings from a HTML page. Methods of
- * this class either return {@link String} or {@link List<String>}.
+ * this class either return {@link String}, {@link List<String>}, {@link int} or
+ * just {@link null} if necessary. Further processing of the extracted strings
+ * should be done in other classes.
  */
 public class StringUtil {
 
@@ -49,19 +51,19 @@ public class StringUtil {
      * @param HTMLRawContent the whole raw HTML page string
      *
      * @return Returns the status code of the html page if presenting, otherwise
-     * returns {@link HTTPStatusCode#UNKNOWN}
+     * returns {@link StatusCode#UNKNOWN}
      */
-    public static HTTPStatusCode extractStatusCode(String HTMLRawContent) {
+    public static StatusCode extractStatusCode(String HTMLRawContent) {
         Pattern pattern = Pattern.compile("HTTP/\\d\\.\\d (\\d{3}) ");
         Matcher matcher = pattern.matcher(HTMLRawContent);
         if (matcher.find()) {
             return Optional.ofNullable(matcher.group(1))
                            .or(() -> Optional.of("0")) // If the matcher returns null, then parse 0 (UNKNOWN) instead
                            .flatMap(s -> Optional.of(parseInt(s)))
-                           .flatMap(s -> Optional.of(HTTPStatusCode.matchCode(s)))
+                           .flatMap(s -> Optional.of(StatusCode.matchCode(s)))
                            .get();
         }
-        return HTTPStatusCode.UNKNOWN;
+        return StatusCode.UNKNOWN;
     }
 
     /**

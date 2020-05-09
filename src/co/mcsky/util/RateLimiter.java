@@ -1,15 +1,18 @@
 package co.mcsky.util;
 
-public class Throttler {
+/**
+ * This class enables a thread to
+ */
+public class RateLimiter {
 
     private final long interval;
     private long lastExecute;
 
-    public Throttler(long interval) {
+    public RateLimiter(long interval) {
         this.interval = interval;
     }
 
-    public void limit() {
+    public synchronized void limit() {
         if (check()) {
             lastExecute = System.currentTimeMillis();
         } else {
