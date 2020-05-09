@@ -1,5 +1,7 @@
 package co.mcsky;
 
+import co.mcsky.util.Throttler;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -8,14 +10,13 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Optional;
 import java.util.Scanner;
-import java.util.UUID;
 
 public class SimpleCrawler {
 
-    private final static UUID REST_KEY = UUID.randomUUID();
+    private final Throttler throttler;
 
-    public SimpleCrawler() {
-
+    public SimpleCrawler(long interval) {
+        throttler = new Throttler(interval);
     }
 
     /**
@@ -25,7 +26,7 @@ public class SimpleCrawler {
      * url}
      */
     public HTMLWrapper request(SimpleURL url) {
-        // TODO Add a block here to limit the request rate
+        throttler.limit();
 
         /*
             1. Open a socket.
@@ -49,8 +50,6 @@ public class SimpleCrawler {
             StringBuilder httpContentBuilder = new StringBuilder();
             while (in.hasNextLine()) { // 读取从服务器发回来的字节
                 httpContentBuilder.append(in.nextLine())
-                                  // 这里 append 换行符是想让 print 更好看一点
-                                  // 另外也是为了简化 regex
                                   .append(System.getProperty("line.separator"));
             }
 
@@ -62,15 +61,8 @@ public class SimpleCrawler {
             System.err.println("Couldn't get I/O for the connection to " + host + ":" + port + ". Returns empty rawContent instead.");
         }
 
-        // Print out what was crawled
         System.out.println("Crawler - Request: \"" + request.replaceAll("([\r\n]*)", "") + "\"");
         System.out.println("Crawler - URL: " + url.getRawURL());
-//        System.out.println("Crawler - Host: " + url.getHost());
-//        System.out.println("Crawler - Port: " + url.getPort());
-//        System.out.println("Crawler - Protocol: " + url.getProtocol());
-//        System.out.println("Crawler - Abs. path: " + url.getAbsPath());
-//        System.out.println("Crawler - Query: " + url.getQuery());
-//        System.out.println("Crawler - Fragment: " + url.getFragment());
         System.out.println("Crawler - Status: " + Optional.ofNullable(wrapper).orElse(new HTMLWrapper(url, "")).getStatusCode());
         System.out.println("Crawler - Modified time: " + Optional.ofNullable(wrapper).orElse(new HTMLWrapper(url, "")).getModifiedTime());
         System.out.println();

@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static java.lang.Integer.*;
+import static java.lang.Integer.parseInt;
 
 /**
  * This class simply extracts specified strings from a HTML page. Methods of
@@ -82,8 +82,8 @@ public class StringUtil {
     /**
      * @param HTMLRawContent the whole raw HTML page string
      *
-     * @return Returns a {@link List} of the non-html objects in this
-     * html page if presenting, otherwise returns an empty {@link List}
+     * @return Returns a {@link List} of the non-html objects in this html page
+     * if presenting, otherwise returns an empty {@link List}
      */
     public static List<String> extractNonHTMLObjects(String HTMLRawContent) {
         // For now it just finds all <img> tags on a html page

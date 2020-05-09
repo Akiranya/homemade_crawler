@@ -9,15 +9,16 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * <p>This is a wrapper class for {@link SimpleURL} which may or may not
- * give back a HTML page. This means that this class must contain a instance of
- * {@link SimpleURL}, and if the {@link SimpleURL#getRawURL()} is a valid URL
- * (say, we can obtain a HTML page from the URL, including 40x and 50x) then
- * this class must contain relevant information about the HTML page.</p>
+ * <p>This is a wrapper class for a {@link SimpleURL} which may or may not
+ * give back a HTML page. This means that this class at least contains a
+ * instance of {@link SimpleURL}. If the {@link SimpleURL#getRawURL()} is a
+ * valid URL (say, we can obtain a HTML page from it, including 40x and 50x
+ * page) then this class will contain relevant information about the HTML
+ * page.</p>
  *
  * <p>This class provides convenient methods for getting relevant information
- * about its internal HTML page (say, {@code modifiedTime}). Typically, the
- * relevant information is for generating a good report for the assignment
+ * about its internal HTML page (say, {@link #getModifiedTime()}). Typically,
+ * the relevant information is for generating a good report for the assignment
  * ;)</p>
  */
 public class HTMLWrapper {
@@ -132,7 +133,7 @@ public class HTMLWrapper {
     }
 
     /**
-     * @return the {@code Location} of the html page returns {@code null}
+     * @return the {@code Location} of the html page
      */
     public SimpleURL getLocation() {
         return location;
@@ -140,6 +141,9 @@ public class HTMLWrapper {
 
     @Override
     public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
         if (!(obj instanceof HTMLWrapper)) {
             return false;
         }
