@@ -33,8 +33,6 @@ public class SimpleCrawler {
      * url}
      */
     public SimpleHTML request(SimpleURL url) {
-        throttler.limit(); // Method call rate limiting
-
         var wrapper = new SimpleHTML(url, null); // Initialize wrapper with concrete URL but null
 
         if (!whitelist.contains(url.getHostPort())) {
@@ -42,6 +40,9 @@ public class SimpleCrawler {
             System.err.println();
             return wrapper;
         }
+
+        // Rate limiting should happen AFTER the whitelist checking to avoid unnecessary waiting
+        throttler.limit(); // Method call rate limiting
 
         var request = String.format("GET %s HTTP/1.0\r\n\r\n", url.getAbsPath());
         var host = url.getHost();
