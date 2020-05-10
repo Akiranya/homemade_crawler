@@ -105,11 +105,11 @@ public class SimpleHTML {
                 .orElse(null);
 
         /*
-        Notes: some exceptional URL
-            http://comp3310.ddns.net/B/29.html
-            http://comp3310.ddns.net:7880/C/307.html
-            http://www.canberratimes.com.au/
-            http://comp3310.ddns.net:7880/B/23.html (contains canberra times)
+            Notes: some exceptional URL
+                http://comp3310.ddns.net:7880/B/25.html (contains images)
+                http://comp3310.ddns.net:7880/C/307.html (contains 404)
+                http://www.canberratimes.com.au/ (off-site url)
+                http://comp3310.ddns.net:7880/B/23.html (contains canberra times)
         */
 
         this.innerURL = StringUtil.extractURL(this.response)
