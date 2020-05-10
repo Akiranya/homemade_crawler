@@ -20,8 +20,7 @@ public enum StatusCode {
     INTERNAL_SERVER_ERROR(500),
     NOT_IMPLEMENTED(501),
     BAD_GATEWAY(502),
-    SERVICE_UNAVAILABLE(503),
-    UNKNOWN(0);
+    SERVICE_UNAVAILABLE(503);
 
     public final int code;
 
@@ -47,17 +46,15 @@ public enum StatusCode {
             case 501 -> NOT_IMPLEMENTED;
             case 502 -> BAD_GATEWAY;
             case 503 -> SERVICE_UNAVAILABLE;
-            default -> UNKNOWN;
+            default -> throw new IllegalStateException("Unexpected value: " + code);
         };
     }
 
     // TODO To confirm: what status codes should be classified as valid URLs?
     public boolean isValid() {
         return switch (this) {
-            case UNKNOWN, NOT_FOUND, FORBIDDEN, NO_CONTENT, BAD_GATEWAY,
-                    BAD_REQUEST, UNAUTHORIZED, NOT_IMPLEMENTED, NOT_MODIFIED,
-                    INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE -> false;
-            default -> true;
+            case OK, CREATED, ACCEPTED, NO_CONTENT, MOVED_PERMANENTLY, MOVED_TEMPORARILY -> true;
+            default -> false;
         };
     }
 
