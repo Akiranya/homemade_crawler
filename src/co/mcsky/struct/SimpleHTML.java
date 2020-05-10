@@ -42,17 +42,17 @@ public final class SimpleHTML {
     private final SimpleLocation location;
 
     /**
-     * @param url standard URL
-     * @param raw raw string content of the http response if presenting,
-     *            otherwise an empty string {@code ""} should pass into the
-     *            constructor
+     * @param url      standard URL
+     * @param response string representation of the http response from the
+     *                 server if presenting, otherwise {@code null} should pass
+     *                 into the constructor
      */
-    public SimpleHTML(SimpleURL url, String raw) {
+    public SimpleHTML(SimpleURL url, String response) {
         this.url = Objects.requireNonNull(url, "URL cannot be null");
 
         // NULL_RESPONSE means that the URL does not have a valid web server,
         // and this value is determined and given by the crawler
-        this.raw = Objects.requireNonNullElse(raw, NULL_RESPONSE);
+        this.raw = Objects.requireNonNullElse(response, NULL_RESPONSE);
 
         this.statusCode = ofNullable(StringUtil.extractStatusCode(this.raw))
                 .or(() -> Optional.of("0")) // If the matcher returns null, then parse 0 (UNKNOWN) instead

@@ -26,6 +26,10 @@ public class RateLimiter {
         }
     }
 
+    public void reset() {
+        lastExecute = 0;
+    }
+
     private boolean check() {
         return diff() > interval;
     }

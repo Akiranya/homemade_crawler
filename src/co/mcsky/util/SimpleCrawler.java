@@ -61,8 +61,13 @@ public class SimpleCrawler {
             wrapper = new SimpleHTML(url, httpContentBuilder.toString());
         } catch (UnknownHostException e) {
             System.err.println("Unknown host " + host + ". Returns empty wrapper");
+            // UnknownHost means that we actually haven't requested the server,
+            // so we have to reset the rate limiting to avoid unnecessary waiting
+            throttler.reset();
         } catch (IOException e) {
             System.err.println("Couldn't get I/O for the connection to " + host + ":" + port + ". Returns empty wrapper");
+            // Same as above
+            throttler.reset();
         }
 
         System.out.println("Crawler - Request: \"" + request.replaceAll("([\r\n]*)", "") + "\"");

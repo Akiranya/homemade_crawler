@@ -35,7 +35,7 @@ public class Main {
         // Initialize our crawler
         var crawler = new SimpleCrawler(1L * 1000L, whitelist);
 
-        // Time to crawl the first html page
+        // Try to crawl the first html page
         var rootHTML = crawler.request(targetURL);
 
         // BFS stuff
