@@ -51,27 +51,27 @@ public final class SimpleHTML {
         this.url = Objects.requireNonNull(url, "URL cannot be null");
         this.raw = Objects.requireNonNullElse(raw, NULL_RESPONSE);
 
-        this.statusCode = ofNullable(StringUtil.extractStatusCode(raw))
+        this.statusCode = ofNullable(StringUtil.extractStatusCode(this.raw))
                 .or(() -> Optional.of("0")) // If the matcher returns null, then parse 0 (UNKNOWN) instead
                 .flatMap(s -> Optional.of(parseInt(s)))
                 .flatMap(s -> Optional.of(StatusCode.matchCode(s)))
                 .get();
 
         // We parse the modified time so that we can compare it easily for the report
-        this.modifiedTime = ofNullable(StringUtil.extractModifiedTime(raw))
+        this.modifiedTime = ofNullable(StringUtil.extractModifiedTime(this.raw))
                 .map(timeString -> LocalDateTime.parse(timeString, DateTimeFormatter.RFC_1123_DATE_TIME))
                 .orElse(null);
 
         // This is the size of html page (confirmed by Markus)
         // See: https://wattlecourses.anu.edu.au/mod/forum/discuss.php?d=605237
-        this.contentLength = ofNullable(StringUtil.extractContentLength(raw))
+        this.contentLength = ofNullable(StringUtil.extractContentLength(this.raw))
                 .or((() -> Optional.of("-1")))
                 .flatMap(s -> Optional.of(parseInt(s)))
                 .get();
 
-        this.innerNonHTMLObjects = StringUtil.extractNonHTMLObjects(raw);
+        this.innerNonHTMLObjects = StringUtil.extractNonHTMLObjects(this.raw);
 
-        this.location = ofNullable(StringUtil.extractLocation(raw))
+        this.location = ofNullable(StringUtil.extractLocation(this.raw))
                 .map(urlString -> new SimpleLocation(this.url, new SimpleURL(urlString)))
                 .orElse(null);
 
@@ -84,7 +84,7 @@ public final class SimpleHTML {
             http://comp3310.ddns.net:7880/B/23.html (contains canberra times)
         */
 
-        this.innerURL = StringUtil.extractURL(raw)
+        this.innerURL = StringUtil.extractURL(this.raw)
                                   .stream()
                                   .map(rawURL -> {
                                       if (rawURL.startsWith("http://") || rawURL.startsWith("https://")) {
@@ -174,6 +174,9 @@ public final class SimpleHTML {
         return ofNullable(location);
     }
 
+    /**
+     * @return true if the URL leads to a valid web server, false else wise
+     */
     public boolean isAlive() {
         return !raw.equals(NULL_RESPONSE);
     }

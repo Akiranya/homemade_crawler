@@ -68,6 +68,14 @@ public final class SimpleURL {
     }
 
     /**
+     * @return the string representation of host and port together, like
+     * "example.com:123" where host is "example.com" and port is "123"
+     */
+    public String getHostPort() {
+        return host + ":" + port;
+    }
+
+    /**
      * @return the protocol of the URL
      */
     public String getProtocol() {

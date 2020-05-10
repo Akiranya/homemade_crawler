@@ -10,13 +10,20 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Scanner;
+import java.util.Set;
 
 public class SimpleCrawler {
 
     private final RateLimiter throttler;
+    private Set<String> whitelist;
 
     public SimpleCrawler(long interval) {
-        throttler = new RateLimiter(interval);
+        this.throttler = new RateLimiter(interval);
+    }
+
+    public SimpleCrawler(long interval, Set<String> whitelist) {
+        this.throttler = new RateLimiter(interval);
+        this.whitelist = whitelist;
     }
 
     /**
@@ -27,8 +34,15 @@ public class SimpleCrawler {
      */
     public SimpleHTML request(SimpleURL url) {
         throttler.limit(); // Method call rate limiting
+
+        var wrapper = new SimpleHTML(url, null); // Initialize wrapper with concrete URL but null
+        if (!whitelist.contains(url.getHostPort())) {
+            System.err.println(url.getHostPort() + " not in whitelist, skipped and returning empty wrapper");
+            System.err.println();
+            return wrapper;
+        }
+
         var request = String.format("GET %s HTTP/1.0\r\n\r\n", url.getAbsPath());
-        var wrapper = new SimpleHTML(url, ""); // New wrapper with concrete URL but empty raw html content
         var host = url.getHost();
         var port = url.getPort();
         try (var socket = new Socket(host, port);
@@ -44,9 +58,9 @@ public class SimpleCrawler {
             // Store the message from the server
             wrapper = new SimpleHTML(url, httpContentBuilder.toString());
         } catch (UnknownHostException e) {
-            System.err.println("Unknown host " + host + ". Returns empty content instead.");
+            System.err.println("Unknown host " + host + ". Returns empty wrapper");
         } catch (IOException e) {
-            System.err.println("Couldn't get I/O for the connection to " + host + ":" + port + ". Returns empty content instead.");
+            System.err.println("Couldn't get I/O for the connection to " + host + ":" + port + ". Returns empty wrapper");
         }
 
         System.out.println("Crawler - Request: \"" + request.replaceAll("([\r\n]*)", "") + "\"");
