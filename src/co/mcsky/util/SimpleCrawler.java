@@ -17,11 +17,7 @@ import static java.lang.System.*;
 public class SimpleCrawler {
 
     private final RateLimiter throttler;
-    private Set<String> whitelist;
-
-    public SimpleCrawler(long interval) {
-        this.throttler = new RateLimiter(interval);
-    }
+    private final Set<String> whitelist;
 
     public SimpleCrawler(long interval, Set<String> whitelist) {
         this.throttler = new RateLimiter(interval);
@@ -43,8 +39,7 @@ public class SimpleCrawler {
             return wrapper;
         }
 
-        // Rate limiting should happen AFTER the whitelist checking to avoid unnecessary waiting
-        throttler.limit();
+        throttler.await(); // Rate limiting should happen AFTER the whitelist checking to avoid unnecessary waiting
 
         var request = String.format("GET %s HTTP/1.0\r\n\r\n", url.getAbsPath());
         var host = url.getHost();
@@ -73,7 +68,7 @@ public class SimpleCrawler {
         }
 
         out.println("Crawler - URL: " + url.toString());
-        out.println("Crawler - Status code: " + wrapper.getStatusCode());
+        wrapper.getStatusCode().ifPresent(code -> out.println("Crawler - Status code: " + code));
         wrapper.getModifiedTime().ifPresent(time -> out.println("Crawler - Modified time: " + time));
         wrapper.getRedirectTo().ifPresent(location -> out.println("Crawler - Location: " + location.toString()));
         out.println();

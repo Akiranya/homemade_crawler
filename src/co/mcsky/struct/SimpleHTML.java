@@ -7,22 +7,22 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.lang.Integer.parseInt;
+import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 
 /**
  * This class represents a html page and a related instance of {@link
- * SimpleURL}. The html page may or may not exist, depending on whether {@link
- * SimpleURL} points to a valid html page or not, during the instantiation of
- * this class.
+ * SimpleURL}. This html page may or may not exist, depending on whether {@link
+ * SimpleURL#toString()} points to a valid html page or not, at the
+ * instantiation of this class.
  *
  * <p>In other words, this class at least contains a instance of {@link
  * SimpleURL}. If the {@link SimpleURL} is a valid URL (say, we can obtain a
  * HTML page from it, including 40x and 50x) then this class will contain
- * relevant information about the html page.
+ * relevant information about this html page.
  *
  * <p>This class provides convenient methods for getting relevant information
  * about its internal html page. Typically, these getter methods are there for
@@ -33,7 +33,7 @@ public class SimpleHTML {
     private static final String NULL_RESPONSE = "";
     private final SimpleURL url;
     private final String response;
-    private final Set<SimpleURL> innerURL;
+    private final List<SimpleURL> innerURL;
     private final int contentLength;
     private final StatusCode statusCode;
     private final LocalDateTime modifiedTime;
@@ -43,31 +43,32 @@ public class SimpleHTML {
     /**
      * @param url      standard URL
      * @param response string representation of the http response from the
-     *                 server if presenting, otherwise {@code null} should pass
-     *                 into the constructor
+     *                 server if present, otherwise {@code null} must pass into
+     *                 the constructor to indicate that the web server where the
+     *                 URL resides is not available
      */
     public SimpleHTML(SimpleURL url, String response) {
         this.url = Objects.requireNonNull(url, "URL cannot be null");
 
-        // NULL_RESPONSE means that the URL does not have a valid web server,
+        // NULL_RESPONSE means that this URL does not have a valid web server,
         // and this value should be determined and given by SimpleCrawler
         this.response = Objects.requireNonNullElse(response, NULL_RESPONSE);
 
         this.statusCode = ofNullable(StringUtil.extractStatusCode(this.response))
-                .or(() -> Optional.of("0")) // If the matcher returns null, then parse 0 (UNKNOWN) instead
-                .flatMap(s -> Optional.of(parseInt(s)))
-                .flatMap(s -> Optional.of(StatusCode.matchCode(s)))
+                .or(() -> of("0")) // If the matcher returns null, then parse 0 (UNKNOWN) instead
+                .flatMap(s -> of(parseInt(s)))
+                .flatMap(s -> of(StatusCode.matchCode(s)))
                 .get();
 
         this.modifiedTime = ofNullable(StringUtil.extractModifiedTime(this.response))
                 .map(timeString -> LocalDateTime.parse(timeString, DateTimeFormatter.RFC_1123_DATE_TIME))
                 .orElse(null);
 
-        // Content-Length is the size of html page (confirmed by Markus)
+        // Content-Length is the size of this html page (confirmed by Markus)
         // See: https://wattlecourses.anu.edu.au/mod/forum/discuss.php?d=605237
         this.contentLength = ofNullable(StringUtil.extractContentLength(this.response))
-                .or((() -> Optional.of("-1")))
-                .flatMap(s -> Optional.of(parseInt(s)))
+                .or((() -> of("-1")))
+                .flatMap(s -> of(parseInt(s)))
                 .get();
 
         this.innerNonHTMLObjects = StringUtil.extractNonHTMLObjects(this.response);
@@ -122,7 +123,7 @@ public class SimpleHTML {
                                           }
                                       }
                                   })
-                                  .collect(Collectors.toSet());
+                                  .collect(Collectors.toList());
     }
 
     /**
@@ -134,68 +135,60 @@ public class SimpleHTML {
     }
 
     /**
-     * @return the URL of this page (this is not the URL(s) contained in this
-     * html page. For the URL(s) contained in the html page, see {@link
-     * #getInnerURL()})
+     * @return the URL pointing to this page
      */
     public SimpleURL getURL() {
         return url;
     }
 
     /**
-     * @return a {@link List} of URLs inside the html page if presenting,
+     * @return a {@link List} of URLs inside this html page if present,
      * otherwise returns empty {@link List}
      */
-    public Set<SimpleURL> getInnerURL() {
+    public List<SimpleURL> getInnerURL() {
         return innerURL;
     }
 
     /**
-     * @return a {@link List} of non-html objects inside the html page if
-     * presenting, otherwise returns empty {@link List}
+     * @return a {@link List} of non-html objects inside this html page if
+     * present, otherwise returns empty {@link List}
      */
     public List<String> getNonHTMLObjects() {
         return innerNonHTMLObjects;
     }
 
     /**
-     * @return the {@code Modified-Time} of the html page wrapped in Optional
+     * @return the {@code Modified-Time} of this html page
      */
     public Optional<LocalDateTime> getModifiedTime() {
         return ofNullable(modifiedTime);
     }
 
     /**
-     * @return the {@code Status Code} of the html page when it is obtained in
+     * @return the {@code Status Code} of this html page when it is obtained in
      * the first place. That is, for example, if this html page is 30x, then we
-     * keep the 30x page instead of the page which it redirects to. Note that it
-     * returns {@link StatusCode#UNKNOWN} if we cannot access to the html page
-     * via the URL
+     * keep the 30x page instead of the page which it redirects to
      */
-    public StatusCode getStatusCode() {
-        return statusCode;
+    public Optional<StatusCode> getStatusCode() {
+        return ofNullable(statusCode);
     }
 
     /**
-     * @return the {@code Content-Length} of the html page if presenting,
-     * returns {@code -1} otherwise if the html page does not exist at all (say,
-     * I/O exception)
+     * @return this {@code Content-Length} of this html page
      */
-    public int getContentLength() {
-        return contentLength;
+    public Optional<Integer> getContentLength() {
+        return of(contentLength);
     }
 
     /**
-     * @return the {@code Location} of the html page wrapped in Optional. This
-     * value will not be empty if the {@link StatusCode} of this html page is
-     * 30x.
+     * @return the {@code Location} (the URL it redirect to) of this html page
      */
     public Optional<SimpleURL> getRedirectTo() {
         return ofNullable(location);
     }
 
     /**
-     * @return true if the URL has a valid web server, false else wise
+     * @return true if this URL has a valid web server, false else wise
      */
     public boolean isAlive() {
         return !response.equals(NULL_RESPONSE);
@@ -212,9 +205,13 @@ public class SimpleHTML {
         return obj.hashCode() == this.hashCode();
     }
 
-    // As we use java.utl.Set store distinct html pages,
-    // it is necessary to override the hashCode() method.
-    // URL should be enough to tell distinct html pages.
+    /**
+     * Ths hashCode is just based on its URL. Though it might be naive, it
+     * should be enough to handle the situation in the assessment server of the
+     * assignment.
+     *
+     * @return a hashCode of this html page
+     */
     @Override
     public int hashCode() {
         return this.url.toString().hashCode();

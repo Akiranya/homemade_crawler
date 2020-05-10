@@ -5,7 +5,6 @@ import co.mcsky.struct.SimpleURL;
 import co.mcsky.struct.StatusCode;
 
 import java.util.Comparator;
-import java.util.Optional;
 import java.util.Set;
 
 import static java.lang.System.out;
@@ -29,7 +28,7 @@ public class Report {
          * Print the total number of distinct URLs found on the site (including any errors and redirects)
          * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
          * */
-        out.printf("Total no of distinct URLs: %s\n", crawled.size());
+        out.printf("Total no of distinct URLs: %s%n", crawled.size());
 
         /*
          * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -38,11 +37,12 @@ public class Report {
          * */
         out.printf("The number of html pages on the site: %s\n",
                    crawled.stream()
-                          .filter(html -> html.getStatusCode() == StatusCode.OK)
+                          .filter(u -> u.getStatusCode().isPresent())
+                          .filter(u -> u.getStatusCode().get() == StatusCode.OK)
                           .count());
         out.printf("The number of non-html objects on the site: %s\n",
                    crawled.stream()
-                          .mapToInt(html -> html.getNonHTMLObjects().size())
+                          .mapToInt(u -> u.getNonHTMLObjects().size())
                           .sum());
 
         /*
@@ -51,18 +51,21 @@ public class Report {
          * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
          * */
         crawled.stream()
-               .filter(html -> html.getStatusCode() == StatusCode.OK)
-               .min((Comparator.comparingInt(SimpleHTML::getContentLength)))
-               .ifPresentOrElse(html -> out.printf("Smallest html page: %s (%s bytes)\n",
-                                                   html.getURL().toString(),
-                                                   html.getContentLength()),
-                                () -> out.println("No smallest html page found."));
+               .filter(u -> u.getStatusCode().isPresent())
+               .filter(u -> u.getContentLength().isPresent())
+               .filter(u -> u.getStatusCode().get() == StatusCode.OK)
+               .min(Comparator.comparingInt(u -> u.getContentLength().get()))
+               .ifPresent(u -> out.printf("Smallest html page: %s (%s bytes)\n",
+                                          u.getURL().toString(),
+                                          u.getContentLength().orElse(-1)));
         crawled.stream()
-               .filter(html -> html.getStatusCode() == StatusCode.OK)
-               .max(Comparator.comparingInt(SimpleHTML::getContentLength))
+               .filter(u -> u.getStatusCode().isPresent())
+               .filter(u -> u.getContentLength().isPresent())
+               .filter(u -> u.getStatusCode().get() == StatusCode.OK)
+               .max(Comparator.comparingInt(u -> u.getContentLength().get()))
                .ifPresentOrElse(html -> out.printf("Largest html page: %s (%s bytes)\n",
                                                    html.getURL().toString(),
-                                                   html.getContentLength()),
+                                                   html.getContentLength().orElse(-1)),
                                 () -> out.println("No largest html page found."));
 
         /*
@@ -74,14 +77,16 @@ public class Report {
                // 404 html pages have null modified time headers,
                // so we have to ignore them to avoid NPE.
                .filter(html -> html.getModifiedTime().isPresent())
-               .min(Comparator.comparing(SimpleHTML::getModifiedTime, Comparator.comparing(Optional::get)))
+               .min(Comparator.comparing(u -> u.getModifiedTime().get()))
+               .filter(html -> html.getModifiedTime().isPresent())
                .ifPresent(html -> out.printf("Oldest modified page: %s (Date: %s)\n",
                                              html.getURL().toString(),
                                              html.getModifiedTime().get()));
         crawled.stream()
                // Same as above
                .filter(html -> html.getModifiedTime().isPresent())
-               .max(Comparator.comparing(SimpleHTML::getModifiedTime, Comparator.comparing(Optional::get)))
+               .max(Comparator.comparing(u -> u.getModifiedTime().get()))
+               .filter(html -> html.getModifiedTime().isPresent())
                .ifPresent(html -> out.printf("Most-recently modified page: %s (Date: %s)\n",
                                              html.getURL().toString(),
                                              html.getModifiedTime().get()));
@@ -93,11 +98,12 @@ public class Report {
          * */
         out.println("A list of invalid URLs (not) found (404):");
         crawled.stream()
-               .filter(html -> !html.getStatusCode().isValid())
+               .filter(u -> u.getStatusCode().isPresent())
+               .filter(u -> !u.getStatusCode().get().isValid())
                .forEach(html -> out.printf(" - %s (Reason: %s %s)\n",
                                            html.getURL().toString(),
-                                           html.getStatusCode().code,
-                                           html.getStatusCode()));
+                                           html.getStatusCode().get().code,
+                                           html.getStatusCode().get()));
 
         /*
          * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -106,7 +112,8 @@ public class Report {
          * */
         out.println("A list of on-site redirected URLs:");
         crawled.stream()
-               .filter(html -> html.getStatusCode().isRedirected())
+               .filter(u -> u.getStatusCode().isPresent())
+               .filter(html -> html.getStatusCode().get().isRedirected())
                .filter(html -> html.getRedirectTo().isPresent())
                .filter(html -> isOnSite(html.getRedirectTo().get()))
                .forEach(html -> out.printf(" - %s -> %s\n",
@@ -119,13 +126,14 @@ public class Report {
          * and whether those sites are valid web servers
          * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
          * */
-        // TODO A list of off-site URLs found
         out.println("A list of off-site URLs found:");
         crawled.stream()
                .filter(html -> !isOnSite(html.getURL()))
                .forEach(html -> out.printf(" - %s -> %s\n",
                                            html.getURL().toString(),
-                                           html.isAlive()));
+                                           html.isAlive()
+                                           ? "web server available"
+                                           : "web server unavailable"));
     }
 
     private boolean isOnSite(SimpleURL test) {
