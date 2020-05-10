@@ -13,7 +13,7 @@ import static java.lang.Integer.parseInt;
  */
 public final class SimpleURL {
 
-    private final String rawURL;
+    private final String url;
     private final String host;
     private final int port;
     private final String protocol;
@@ -22,12 +22,10 @@ public final class SimpleURL {
     private final String fragment;
 
     public SimpleURL(String rawURL) {
-        this.rawURL = rawURL;
-
         // Debugger for this regex: https://regex101.com/r/Zx74z0/11
         var regex = "^(?:([^:/?#]+):)?(?://([^/?:#]*)(?::(\\d*))?)?([^?#]+)?(?:\\?([^#]*))?(?:#(.+))?";
         var pattern = Pattern.compile(regex);
-        var matcher = pattern.matcher(this.rawURL);
+        var matcher = pattern.matcher(rawURL);
         if (!matcher.find()) {
             throw new IllegalArgumentException("Cannot recognize URL: " + rawURL);
         }
@@ -43,13 +41,18 @@ public final class SimpleURL {
         this.absPath = Optional.ofNullable(matcher.group(4)).orElse("/");
         this.query = Optional.ofNullable(matcher.group(5)).orElse("");
         this.fragment = Optional.ofNullable(matcher.group(6)).orElse("");
+
+        // Reconstruct the URL into very standard form
+        this.url = protocol + "://" + host + ":" + port + absPath +
+                   (query.equals("") ? "" : "?=" + query) +
+                   (fragment.equals("") ? "" : "#" + fragment);
     }
 
     /**
      * @return the full URL
      */
     public String getUrl() {
-        return rawURL;
+        return url;
     }
 
     /**
@@ -122,7 +125,7 @@ public final class SimpleURL {
     // URL should be enough to tell distinct html pages.
     @Override
     public int hashCode() {
-        return this.getUrl().hashCode();
+        return this.url.hashCode();
     }
 
 }
