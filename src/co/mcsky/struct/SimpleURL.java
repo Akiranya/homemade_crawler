@@ -8,7 +8,6 @@ import static java.lang.Integer.parseInt;
 
 /**
  * Represents a {@code URL}. See <a href="https://www.rfc-editor.org/rfc/rfc1945.html#section-3.2.2">RFC1945
- * Represents a {@code URL}. See <a href="https://www.rfc-editor.org/rfc/rfc1945.html#section-3.2.2">RFC1945
  * 3.2.2</a>.
  */
 public class SimpleURL {
