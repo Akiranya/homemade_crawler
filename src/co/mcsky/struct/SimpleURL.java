@@ -42,7 +42,8 @@ public final class SimpleURL {
         this.query = Optional.ofNullable(matcher.group(5)).orElse("");
         this.fragment = Optional.ofNullable(matcher.group(6)).orElse("");
 
-        // Reconstruct the URL into very standard form
+        // Reconstruct the URL into very standard form,
+        // this should ensure that distinct URLs are really distinct
         this.url = protocol + "://" + host + ":" + port + absPath +
                    (query.equals("") ? "" : "?=" + query) +
                    (fragment.equals("") ? "" : "#" + fragment);

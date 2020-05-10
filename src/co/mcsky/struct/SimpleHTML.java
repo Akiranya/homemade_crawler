@@ -33,7 +33,7 @@ public final class SimpleHTML {
 
     private static final String NULL_RESPONSE = "";
     private final SimpleURL url;
-    private final String raw;
+    private final String response;
     private final List<SimpleURL> innerURL;
     private final int contentLength;
     private final StatusCode statusCode;
@@ -52,29 +52,29 @@ public final class SimpleHTML {
 
         // NULL_RESPONSE means that the URL does not have a valid web server,
         // and this value is determined and given by the crawler
-        this.raw = Objects.requireNonNullElse(response, NULL_RESPONSE);
+        this.response = Objects.requireNonNullElse(response, NULL_RESPONSE);
 
-        this.statusCode = ofNullable(StringUtil.extractStatusCode(this.raw))
+        this.statusCode = ofNullable(StringUtil.extractStatusCode(this.response))
                 .or(() -> Optional.of("0")) // If the matcher returns null, then parse 0 (UNKNOWN) instead
                 .flatMap(s -> Optional.of(parseInt(s)))
                 .flatMap(s -> Optional.of(StatusCode.matchCode(s)))
                 .get();
 
         // We parse the modified time so that we can compare it easily for the report
-        this.modifiedTime = ofNullable(StringUtil.extractModifiedTime(this.raw))
+        this.modifiedTime = ofNullable(StringUtil.extractModifiedTime(this.response))
                 .map(timeString -> LocalDateTime.parse(timeString, DateTimeFormatter.RFC_1123_DATE_TIME))
                 .orElse(null);
 
         // This is the size of html page (confirmed by Markus)
         // See: https://wattlecourses.anu.edu.au/mod/forum/discuss.php?d=605237
-        this.contentLength = ofNullable(StringUtil.extractContentLength(this.raw))
+        this.contentLength = ofNullable(StringUtil.extractContentLength(this.response))
                 .or((() -> Optional.of("-1")))
                 .flatMap(s -> Optional.of(parseInt(s)))
                 .get();
 
-        this.innerNonHTMLObjects = StringUtil.extractNonHTMLObjects(this.raw);
+        this.innerNonHTMLObjects = StringUtil.extractNonHTMLObjects(this.response);
 
-        this.location = ofNullable(StringUtil.extractLocation(this.raw))
+        this.location = ofNullable(StringUtil.extractLocation(this.response))
                 .map(urlString -> new SimpleLocation(this.url, new SimpleURL(urlString)))
                 .orElse(null);
 
@@ -87,7 +87,7 @@ public final class SimpleHTML {
             http://comp3310.ddns.net:7880/B/23.html (contains canberra times)
         */
 
-        this.innerURL = StringUtil.extractURL(this.raw)
+        this.innerURL = StringUtil.extractURL(this.response)
                                   .stream()
                                   .map(rawURL -> {
                                       if (rawURL.startsWith("http://") || rawURL.startsWith("https://")) {
@@ -114,8 +114,8 @@ public final class SimpleHTML {
      * @return the raw HTML page strings from the server (say, the one starting
      * with "HTTP/1.1 200 OK ..."
      */
-    public String getRaw() {
-        return raw;
+    public String getResponse() {
+        return response;
     }
 
     /**
@@ -181,7 +181,7 @@ public final class SimpleHTML {
      * @return true if the URL has a valid web server, false else wise
      */
     public boolean isAlive() {
-        return !raw.equals(NULL_RESPONSE);
+        return !response.equals(NULL_RESPONSE);
     }
 
     @Override
