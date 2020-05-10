@@ -8,9 +8,10 @@ import static java.lang.Integer.parseInt;
 
 /**
  * Represents an {@code URL}. See <a href="https://www.rfc-editor.org/rfc/rfc1945.html#section-3.2.2">RFC1945
- * 3.2.2</a>.
+ * 3.2.2</a>. It is {@code final} so that there is no need to take care of
+ * states.
  */
-public class SimpleURL {
+public final class SimpleURL {
 
     private final String rawURL;
     private final String host;
@@ -36,29 +37,18 @@ public class SimpleURL {
             Should save me from dealing with messy NPEs in other classes.
         */
 
-        // 1st capturing group is the protocol
         this.protocol = Optional.ofNullable(matcher.group(1)).orElseThrow(() -> new NoSuchElementException("Protocol cannot be empty"));
-
-        // 2nd capturing group is the host
         this.host = Optional.ofNullable(matcher.group(2)).orElseThrow(() -> new NoSuchElementException("Host cannot be empty."));
-
-        // 3rd capturing group is the port
         this.port = parseInt(Optional.ofNullable(matcher.group(3)).orElse("80"));
-
-        // 4th capturing group is the path
         this.absPath = Optional.ofNullable(matcher.group(4)).orElse("/");
-
-        // 5th capturing group is the query
         this.query = Optional.ofNullable(matcher.group(5)).orElse("");
-
-        // 6th capturing group is the fragment
         this.fragment = Optional.ofNullable(matcher.group(6)).orElse("");
     }
 
     /**
      * @return the full URL
      */
-    public String getRawURL() {
+    public String getUrl() {
         return rawURL;
     }
 
@@ -124,7 +114,7 @@ public class SimpleURL {
     // URL should be enough to tell distinct html pages.
     @Override
     public int hashCode() {
-        return this.getRawURL().hashCode();
+        return this.getUrl().hashCode();
     }
 
 }

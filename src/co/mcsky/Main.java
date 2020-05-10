@@ -23,8 +23,8 @@ public class Main {
         Queue<SimpleHTML> que = new LinkedList<>();
         Set<SimpleURL> crawled = new HashSet<>(); // Use URL to identify distinct pages
         Set<SimpleHTML> crawledAll = new HashSet<>();
-        SimpleCrawler crawler = new SimpleCrawler(2L * 1000L);
-        SimpleHTML rootHTML = crawler.request(new SimpleURL("http://comp3310.ddns.net:7880"));
+        var crawler = new SimpleCrawler(2L * 1000L);
+        var rootHTML = crawler.request(new SimpleURL("http://comp3310.ddns.net:7880"));
         crawled.add(rootHTML.getURL());
         que.add(rootHTML);
         while (!que.isEmpty()) {

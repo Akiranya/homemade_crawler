@@ -19,7 +19,6 @@ public class Report {
      * @param crawled a {@link Set} of crawled html pages represented by {@link
      *                SimpleURL}
      */
-    @SuppressWarnings("OptionalGetWithoutIsPresent")
     public Report(Set<SimpleHTML> crawled) {
         /*
          * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -51,14 +50,14 @@ public class Report {
                .filter(html -> html.getContentLength() > 0) // This should get us all the html pages we crawled
                .min((Comparator.comparingInt(SimpleHTML::getContentLength)))
                .ifPresentOrElse(html -> out.printf("Smallest html page: %s (%s bytes)\n",
-                                                   html.getURL().getRawURL(),
+                                                   html.getURL().getUrl(),
                                                    html.getContentLength()),
                                 () -> out.println("No smallest html page found."));
         crawled.stream()
                .filter(html -> html.getStatusCode() == StatusCode.OK)
                .max(Comparator.comparingInt(SimpleHTML::getContentLength))
                .ifPresentOrElse(html -> out.printf("Largest html page: %s (%s bytes)\n",
-                                                   html.getURL().getRawURL(),
+                                                   html.getURL().getUrl(),
                                                    html.getContentLength()),
                                 () -> out.println("No largest html page found."));
 
@@ -73,14 +72,14 @@ public class Report {
                .filter(html -> html.getModifiedTime().isPresent())
                .min(Comparator.comparing(SimpleHTML::getModifiedTime, Comparator.comparing(Optional::get)))
                .ifPresent(html -> out.printf("Oldest modified page: %s (Date: %s)\n",
-                                             html.getURL().getRawURL(),
+                                             html.getURL().getUrl(),
                                              html.getModifiedTime().get()));
         crawled.stream()
                // Same as above
                .filter(html -> html.getModifiedTime().isPresent())
                .max(Comparator.comparing(SimpleHTML::getModifiedTime, Comparator.comparing(Optional::get)))
                .ifPresent(html -> out.printf("Most-recently modified page: %s (Date: %s)\n",
-                                             html.getURL().getRawURL(),
+                                             html.getURL().getUrl(),
                                              html.getModifiedTime().get()));
 
         /*
@@ -90,10 +89,9 @@ public class Report {
          * */
         out.println("A list of invalid URLs (not) found (404):");
         crawled.stream()
-               //                   .filter(html -> !html.getStatusCode().isValid())
-               .filter(html -> html.getStatusCode() == StatusCode.NOT_FOUND)
+               .filter(html -> !html.getStatusCode().isValid())
                .forEach(html -> out.printf(" - %s (Reason: %s %s)\n",
-                                           html.getURL().getRawURL(),
+                                           html.getURL().getUrl(),
                                            html.getStatusCode().code,
                                            html.getStatusCode()));
 
@@ -106,9 +104,10 @@ public class Report {
         crawled.stream()
                .filter(html -> html.getStatusCode().isRedirected())
                .filter(html -> html.getLocation().isPresent())
+               .filter(html -> html.getLocation().get().isOnSite())
                .forEach(html -> out.printf(" - %s -> %s\n",
-                                           html.getLocation().get().getFrom().getRawURL(),
-                                           html.getLocation().get().getTo().getRawURL()));
+                                           html.getLocation().get().getFrom().getUrl(),
+                                           html.getLocation().get().getTo().getUrl()));
 
         /*
          * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@

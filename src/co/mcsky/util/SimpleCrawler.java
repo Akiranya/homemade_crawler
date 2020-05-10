@@ -50,9 +50,10 @@ public class SimpleCrawler {
         }
 
         System.out.println("Crawler - Request: \"" + request.replaceAll("([\r\n]*)", "") + "\"");
-        System.out.println("Crawler - URL: " + url.getRawURL());
+        System.out.println("Crawler - URL: " + url.getUrl());
         System.out.println("Crawler - Status code: " + wrapper.getStatusCode());
-        System.out.println("Crawler - Modified time: " + wrapper.getModifiedTime());
+        wrapper.getModifiedTime().ifPresent(time -> System.out.println("Crawler - Modified time: " + time));
+        wrapper.getLocation().ifPresent(location -> System.out.println("Crawler - Location: " + location.getTo().getUrl()));
         System.out.println();
         return wrapper;
     }

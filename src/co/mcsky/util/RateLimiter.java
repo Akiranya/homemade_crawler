@@ -1,7 +1,8 @@
 package co.mcsky.util;
 
 /**
- * This class enables a thread to
+ * This class enables a thread which will call {@link #limit()} run at most ONCE
+ * per {@link #interval} milliseconds.
  */
 public class RateLimiter {
 
@@ -12,7 +13,7 @@ public class RateLimiter {
         this.interval = interval;
     }
 
-    public synchronized void limit() {
+    public void limit() {
         if (check()) {
             lastExecute = System.currentTimeMillis();
         } else {
@@ -25,16 +26,16 @@ public class RateLimiter {
         }
     }
 
-    private long diff() {
-        return System.currentTimeMillis() - lastExecute;
-    }
-
     private boolean check() {
         return diff() > interval;
     }
 
     private long left() {
         return interval - diff();
+    }
+
+    private long diff() {
+        return System.currentTimeMillis() - lastExecute;
     }
 
 }

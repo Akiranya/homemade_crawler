@@ -5,32 +5,34 @@ import co.mcsky.util.StringUtil;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static java.lang.Integer.parseInt;
+import static java.util.Optional.ofNullable;
+
 /**
- * <p>
  * This class represents a html page related to a instance of {@link SimpleURL}.
  * The html page may or may not exist, depending on whether {@link SimpleURL}
  * links to a valid html page or not during the instantiation of this class.
- * </p>
  *
- * <p>
- * In other words, this class at least contains a instance of {@link SimpleURL}.
- * If the {@link SimpleURL#getRawURL()} is a valid URL (say, we can obtain a
- * HTML page from it, including 40x and 50x) then this class will contain
- * relevant information about the html page.
- * </p>
+ * <p>In other words, this class at least contains a instance of {@link
+ * SimpleURL}. If the {@link SimpleURL#getUrl()} is a valid URL (say, we can
+ * obtain a HTML page from it, including 40x and 50x) then this class will
+ * contain relevant information about the html page.
  *
- * <p>
- * This class provides convenient methods for getting relevant information about
- * its internal html page (say, {@link #getModifiedTime()}). Typically, these
- * getter methods are there for generating a good report for the assignment ;)
- * </p>
+ * <p>This class provides convenient methods for getting relevant information
+ * about its internal html page (say, {@link #getModifiedTime()}). Typically,
+ * these getter methods are there for generating a good report for the
+ * assignment ;)
+ *
+ * <p>It is {@code final} so that there is no need to take care of states.
  */
-public class SimpleHTML {
+public final class SimpleHTML {
 
-    private final SimpleURL url; // This URL should be given by the crawler.
+    private static final String NULL_RESPONSE = "";
+    private final SimpleURL url;
     private final String raw;
     private final List<SimpleURL> innerURL;
     private final int contentLength;
@@ -39,59 +41,74 @@ public class SimpleHTML {
     private final List<String> innerNonHTMLObjects;
     private final SimpleLocation location;
 
+    /**
+     * @param url standard URL
+     * @param raw raw string content of the http response if presenting,
+     *            otherwise an empty string {@code ""} should pass into the
+     *            constructor
+     */
     public SimpleHTML(SimpleURL url, String raw) {
-        this.url = url;
+        this.url = Objects.requireNonNull(url, "URL cannot be null");
+        this.raw = Objects.requireNonNullElse(raw, NULL_RESPONSE);
 
-        this.raw = raw; // Raw byte messages from sockets
-        this.statusCode = StringUtil.extractStatusCode(raw);
+        this.statusCode = ofNullable(StringUtil.extractStatusCode(raw))
+                .or(() -> Optional.of("0")) // If the matcher returns null, then parse 0 (UNKNOWN) instead
+                .flatMap(s -> Optional.of(parseInt(s)))
+                .flatMap(s -> Optional.of(StatusCode.matchCode(s)))
+                .get();
 
         // We parse the modified time so that we can compare it easily for the report
-        this.modifiedTime = Optional.ofNullable(StringUtil.extractModifiedTime(raw))
-                                    .map(timeString -> LocalDateTime.parse(timeString, DateTimeFormatter.RFC_1123_DATE_TIME))
-                                    .orElse(null);
+        this.modifiedTime = ofNullable(StringUtil.extractModifiedTime(raw))
+                .map(timeString -> LocalDateTime.parse(timeString, DateTimeFormatter.RFC_1123_DATE_TIME))
+                .orElse(null);
 
-        this.contentLength = StringUtil.extractContentLength(raw); // This is the size of html page, I think?
-        this.innerNonHTMLObjects = StringUtil.extractNonHTMLObjects(raw); // NonHTMLObjects only include images for now
-        this.location = Optional.ofNullable(StringUtil.extractLocation(raw))
-                                .map(urlString -> new SimpleLocation(this.url, new SimpleURL(urlString)))
-                                .orElse(null);
+        // This is the size of html page (confirmed by Markus)
+        // See: https://wattlecourses.anu.edu.au/mod/forum/discuss.php?d=605237
+        this.contentLength = ofNullable(StringUtil.extractContentLength(raw))
+                .or((() -> Optional.of("-1")))
+                .flatMap(s -> Optional.of(parseInt(s)))
+                .get();
 
-        // Notes: some exceptional URL
-        // http://comp3310.ddns.net/B/29.html
-        // http://www.canberratimes.com.au/
-        // http://comp3310.ddns.net:7880/C/307.html
-        // http://www.canberratimes.com.au/
-        // http://comp3310.ddns.net:7880/B/23.html (contains canberra times)
+        this.innerNonHTMLObjects = StringUtil.extractNonHTMLObjects(raw);
 
-        // We try to format the rawURL into meaningful format so that the URL
-        // can be recognized and crawled by SimpleCrawler.request(URL).
+        this.location = ofNullable(StringUtil.extractLocation(raw))
+                .map(urlString -> new SimpleLocation(this.url, new SimpleURL(urlString)))
+                .orElse(null);
+
+        /*
+        Notes: some exceptional URL
+            http://comp3310.ddns.net/B/29.html
+            http://www.canberratimes.com.au/
+            http://comp3310.ddns.net:7880/C/307.html
+            http://www.canberratimes.com.au/
+            http://comp3310.ddns.net:7880/B/23.html (contains canberra times)
+        */
+
         this.innerURL = StringUtil.extractURL(raw)
                                   .stream()
-                                  .map(urlString -> {
-                                      if (urlString.startsWith("http://") || urlString.startsWith("https://")) {
+                                  .map(rawURL -> {
+                                      if (rawURL.startsWith("http://") || rawURL.startsWith("https://")) {
                                           // Case where the URL is already in full format
                                           // e.g.1 http://comp3310.ddns.net/B/29.html
                                           // e.g.2 http://comp3310.ddns.net:7880/C/307.html
-                                          return new SimpleURL(urlString);
+                                          return new SimpleURL(rawURL);
                                       } else {
                                           // Case where the URL is not in full format
                                           // then we try to format it into full URL.
                                           // e.g. A/30.html, /B/29.html
-                                          String baseURL = url.getProtocol() + "://" + url.getHost() + ":" + url.getPort();
-                                          String fullURL;
-                                          if (urlString.startsWith("/")) {
-                                              fullURL = baseURL + urlString;
+                                          var baseURL = url.getProtocol() + "://" + url.getHost() + ":" + url.getPort();
+                                          if (rawURL.startsWith("/")) {
+                                              return new SimpleURL(baseURL + rawURL);
                                           } else {
-                                              fullURL = baseURL + "/" + urlString;
+                                              return new SimpleURL(baseURL + "/" + rawURL);
                                           }
-                                          return new SimpleURL(fullURL);
                                       }
                                   })
                                   .collect(Collectors.toList());
     }
 
     /**
-     * @return the whole raw HTML page string (say, the raw html string starting
+     * @return the raw HTML page strings from the server (say, the one starting
      * with "HTTP/1.1 200 OK ..."
      */
     public String getRaw() {
@@ -124,38 +141,41 @@ public class SimpleHTML {
     }
 
     /**
-     * @return the {@code Modified-Time} of the html page if presenting,
-     * otherwise returns null
+     * @return the {@code Modified-Time} of the html page wrapped in Optional
      */
     public Optional<LocalDateTime> getModifiedTime() {
-        return Optional.ofNullable(modifiedTime);
+        return ofNullable(modifiedTime);
     }
 
     /**
-     * @return the status code of the html page when it is obtained in the first
-     * place. That is, if this html is 30x, then we keep the 30x page instead of
-     * the page which it redirects to. If we cannot access to the html page via
-     * the URL, then returns {@link StatusCode#UNKNOWN} otherwise
+     * @return the {@code Status Code} of the html page when it is obtained in
+     * the first place. That is, for example, if this html page is 30x, then we
+     * keep the 30x page instead of the page which it redirects to. Note that it
+     * returns {@link StatusCode#UNKNOWN} if we cannot access to the html page
+     * via the URL,
      */
     public StatusCode getStatusCode() {
         return statusCode;
     }
 
     /**
-     * @return the {@code Content-Length} of the html page if presenting. If the
-     * html page does not exist at all (say, I/O exception), returns {@code -1}
-     * otherwise
+     * @return the {@code Content-Length} of the html page if presenting,
+     * returns {@code -1} otherwise if the html page does not exist at all (say,
+     * I/O exception)
      */
     public int getContentLength() {
         return contentLength;
     }
 
     /**
-     * @return the {@code Location} of the html page if presenting, otherwise
-     * returns null (as {@code Location} only exists in 30x page)
+     * @return the {@code Location} of the html page wrapped in Optional
      */
     public Optional<SimpleLocation> getLocation() {
-        return Optional.ofNullable(location);
+        return ofNullable(location);
+    }
+
+    public boolean isAlive() {
+        return !raw.equals(NULL_RESPONSE);
     }
 
     @Override
@@ -174,7 +194,7 @@ public class SimpleHTML {
     // URL should be enough to tell distinct html pages.
     @Override
     public int hashCode() {
-        return this.getURL().getRawURL().hashCode();
+        return this.getURL().getUrl().hashCode();
     }
 
 }
