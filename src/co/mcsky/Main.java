@@ -26,7 +26,7 @@ public class Main {
         var whitelist = new HashSet<String>() {{
             add(targetURL.getHostPort());
         }};
-        var interval = 2L; // 1 request per 2 seconds request rate
+        var interval = 1L; // 1 request per 2 seconds request rate
         var crawler = new SimpleCrawler(interval * 1000L, whitelist);
 
         // Start BFS

@@ -12,6 +12,8 @@ import java.net.UnknownHostException;
 import java.util.Scanner;
 import java.util.Set;
 
+import static java.lang.System.*;
+
 public class SimpleCrawler {
 
     private final RateLimiter throttler;
@@ -36,8 +38,8 @@ public class SimpleCrawler {
         var wrapper = new SimpleHTML(url, null); // Initialize wrapper with concrete URL but null response
 
         if (!whitelist.contains(url.getHostPort())) {
-            System.err.println(url.getHostPort() + " not in whitelist, skipped and returning empty wrapper");
-            System.err.println();
+            out.println(url.getHostPort() + " not in whitelist, skipped and returning empty wrapper");
+            out.println();
             return wrapper;
         }
 
@@ -55,27 +57,27 @@ public class SimpleCrawler {
             var httpContentBuilder = new StringBuilder();
             while (in.hasNextLine()) { // Read off lines from the server
                 httpContentBuilder.append(in.nextLine())
-                                  .append(System.getProperty("line.separator"));
+                                  .append(getProperty("line.separator"));
             }
             // Store the message from the server
             wrapper = new SimpleHTML(url, httpContentBuilder.toString());
         } catch (UnknownHostException e) {
-            System.err.println("Unknown host " + host + ". Returns empty wrapper");
+            err.println("Unknown host " + host + ". Returns empty wrapper");
             // UnknownHost means that we actually haven't requested the server,
             // so we have to reset the rate limiting to avoid unnecessary waiting
             throttler.reset();
         } catch (IOException e) {
-            System.err.println("Couldn't get I/O for the connection to " + host + ":" + port + ". Returns empty wrapper");
+            err.println("Couldn't get I/O for the connection to " + host + ":" + port + ". Returns empty wrapper");
             // Same as above
             throttler.reset();
         }
 
-        System.out.println("Crawler - Request: \"" + request.replaceAll("([\r\n]*)", "") + "\"");
-        System.out.println("Crawler - URL: " + url.toString());
-        System.out.println("Crawler - Status code: " + wrapper.getStatusCode());
-        wrapper.getModifiedTime().ifPresent(time -> System.out.println("Crawler - Modified time: " + time));
-        wrapper.getLocation().ifPresent(location -> System.out.println("Crawler - Location: " + location.getTo().toString()));
-        System.out.println();
+        out.println("Crawler - Request: \"" + request.replaceAll("([\r\n]*)", "") + "\"");
+        out.println("Crawler - URL: " + url.toString());
+        out.println("Crawler - Status code: " + wrapper.getStatusCode());
+        wrapper.getModifiedTime().ifPresent(time -> out.println("Crawler - Modified time: " + time));
+        wrapper.getLocation().ifPresent(location -> out.println("Crawler - Location: " + location.getTo().toString()));
+        out.println();
         return wrapper;
     }
 
