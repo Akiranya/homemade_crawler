@@ -55,10 +55,9 @@ public class SimpleHTML {
         this.response = Objects.requireNonNullElse(response, NULL_RESPONSE);
 
         this.statusCode = ofNullable(StringUtil.extractStatusCode(this.response))
-                .or(() -> of("0")) // If the matcher returns null, then parse 0 (UNKNOWN) instead
                 .flatMap(s -> of(parseInt(s)))
                 .flatMap(s -> of(StatusCode.matchCode(s)))
-                .get();
+                .orElse(null);
 
         this.modifiedTime = ofNullable(StringUtil.extractModifiedTime(this.response))
                 .map(timeString -> LocalDateTime.parse(timeString, DateTimeFormatter.RFC_1123_DATE_TIME))
@@ -67,9 +66,8 @@ public class SimpleHTML {
         // Content-Length is the size of this html page (confirmed by Markus)
         // See: https://wattlecourses.anu.edu.au/mod/forum/discuss.php?d=605237
         this.contentLength = ofNullable(StringUtil.extractContentLength(this.response))
-                .or((() -> of("-1")))
                 .flatMap(s -> of(parseInt(s)))
-                .get();
+                .orElse(-1);
 
         this.innerNonHTMLObjects = StringUtil.extractNonHTMLObjects(this.response);
         this.location = ofNullable(StringUtil.extractLocation(this.response))
