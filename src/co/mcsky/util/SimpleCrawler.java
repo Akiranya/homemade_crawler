@@ -72,11 +72,10 @@ public class SimpleCrawler {
             throttler.reset();
         }
 
-        out.println("Crawler - Request: \"" + request.replaceAll("([\r\n]*)", "") + "\"");
         out.println("Crawler - URL: " + url.toString());
         out.println("Crawler - Status code: " + wrapper.getStatusCode());
         wrapper.getModifiedTime().ifPresent(time -> out.println("Crawler - Modified time: " + time));
-        wrapper.getLocation().ifPresent(location -> out.println("Crawler - Location: " + location.getTo().toString()));
+        wrapper.getRedirectTo().ifPresent(location -> out.println("Crawler - Location: " + location.toString()));
         out.println();
         return wrapper;
     }

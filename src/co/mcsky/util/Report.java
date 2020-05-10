@@ -15,11 +15,15 @@ import static java.lang.System.out;
  */
 public class Report {
 
+    private final SimpleURL site;
+
     /**
      * @param crawled a {@link Set} of crawled html pages represented by {@link
      *                SimpleURL}
      */
-    public Report(Set<SimpleHTML> crawled) {
+    public Report(SimpleURL site, Set<SimpleHTML> crawled) {
+        this.site = site;
+
         /*
          * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
          * Print the total number of distinct URLs found on the site (including any errors and redirects)
@@ -103,11 +107,11 @@ public class Report {
         out.println("A list of on-site redirected URLs:");
         crawled.stream()
                .filter(html -> html.getStatusCode().isRedirected())
-               .filter(html -> html.getLocation().isPresent())
-               .filter(html -> html.getLocation().get().isOnSite())
+               .filter(html -> html.getRedirectTo().isPresent())
+               .filter(html -> isOnSite(html.getRedirectTo().get()))
                .forEach(html -> out.printf(" - %s -> %s\n",
-                                           html.getLocation().get().getFrom().toString(),
-                                           html.getLocation().get().getTo().toString()));
+                                           html.getURL().toString(),
+                                           html.getRedirectTo().get().toString()));
 
         /*
          * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -118,8 +122,14 @@ public class Report {
         // TODO A list of off-site URLs found
         out.println("A list of off-site URLs found:");
         crawled.stream()
-               .filter(html -> !html.isAlive())
-               .forEach(html -> out.println(html.getURL().toString()));
+               .filter(html -> !isOnSite(html.getURL()))
+               .forEach(html -> out.printf(" - %s -> %s\n",
+                                           html.getURL().toString(),
+                                           html.isAlive()));
+    }
+
+    private boolean isOnSite(SimpleURL test) {
+        return this.site.getHost().equals(test.getHost()) && this.site.getPort() == test.getPort();
     }
 
 }

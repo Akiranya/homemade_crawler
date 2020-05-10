@@ -8,10 +8,9 @@ import static java.lang.Integer.parseInt;
 
 /**
  * Represents an {@code URL}. See <a href="https://www.rfc-editor.org/rfc/rfc1945.html#section-3.2.2">RFC1945
- * 3.2.2</a>. It is {@code final} so that there is no need to take care of
- * states.
+ * 3.2.2</a>.
  */
-public final class SimpleURL {
+public class SimpleURL {
 
     private final String URL;
     private final String host;

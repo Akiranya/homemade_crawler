@@ -51,7 +51,7 @@ public enum StatusCode {
         };
     }
 
-    // TODO What status codes should be classified as valid URLs?
+    // TODO To confirm: what status codes should be classified as valid URLs?
     public boolean isValid() {
         return switch (this) {
             case UNKNOWN, NOT_FOUND, FORBIDDEN, NO_CONTENT, BAD_GATEWAY,
