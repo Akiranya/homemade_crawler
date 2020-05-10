@@ -64,8 +64,8 @@ public class SimpleCrawler {
 
         out.println("Crawler - Sec: " + LocalDateTime.now().getSecond());
         out.println("Crawler - URL: " + url.toString());
-        html.getStatusCode().ifPresent(code -> out.println("Crawler - Status code: " + code));
-        html.getModifiedTime().ifPresent(time -> out.println("Crawler - Modified time: " + time));
+        html.getStatusCode().ifPresent(code -> out.println("Crawler - Status code: " + code.toString()));
+        html.getModifiedTime().ifPresent(time -> out.println("Crawler - Modified time: " + time.toString()));
         html.getRedirectTo().ifPresent(location -> out.println("Crawler - Location: " + location.toString()));
         return html;
     }

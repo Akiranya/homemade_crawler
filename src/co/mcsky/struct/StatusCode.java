@@ -64,4 +64,9 @@ public enum StatusCode {
             default -> false;
         };
     }
+
+    @Override
+    public String toString() {
+        return code + " " + name();
+    }
 }

@@ -101,10 +101,9 @@ public class Report {
         crawled.stream()
                .filter(u -> u.getStatusCode().isPresent())
                .filter(u -> !u.getStatusCode().get().isValid())
-               .forEach(html -> out.printf(" - %s (Reason: %s %s)%n",
+               .forEach(html -> out.printf(" - %s (Reason: %s)%n",
                                            html.getURL().toString(),
-                                           html.getStatusCode().get().code,
-                                           html.getStatusCode().get()));
+                                           html.getStatusCode().get().toString()));
 
         /*
          * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
