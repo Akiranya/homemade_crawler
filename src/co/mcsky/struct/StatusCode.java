@@ -46,7 +46,7 @@ public enum StatusCode {
             case 501 -> NOT_IMPLEMENTED;
             case 502 -> BAD_GATEWAY;
             case 503 -> SERVICE_UNAVAILABLE;
-            default -> throw new IllegalStateException("Unexpected value: " + code);
+            default -> throw new IllegalStateException("Undefined status code: " + code);
         };
     }
 
