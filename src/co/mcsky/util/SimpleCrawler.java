@@ -20,6 +20,12 @@ public class SimpleCrawler {
     private final RateLimiter throttler;
     private final Set<String> whitelist;
 
+    /**
+     * Initializes a crawler.
+     *
+     * @param interval  runs crawling at 1 request per {@code interval} rate
+     * @param whitelist what websites should the crawler crawls for
+     */
     public SimpleCrawler(long interval, Set<String> whitelist) {
         this.throttler = new RateLimiter(interval);
         this.whitelist = whitelist;
