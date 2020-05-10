@@ -43,7 +43,6 @@ public class SimpleCrawler {
         ) {
             if (!whitelist.contains(url.getHostPort())) {
                 err.println(url.getHostPort() + " not in whitelist, skipped and returning empty html");
-                throttler.reset(); // Only consider rate limiting on the assessment server
                 return new SimpleHTML(url, null, true);
             }
 
@@ -59,13 +58,8 @@ public class SimpleCrawler {
             html = new SimpleHTML(url, httpContentBuilder.toString(), true);
         } catch (UnknownHostException e) {
             err.println("Unknown host " + host + ", returning empty html");
-            // UnknownHost means that we actually haven't requested the server,
-            // so we have to reset the rate limiting to avoid unnecessary waiting
-            throttler.reset();
         } catch (IOException e) {
             err.println("Couldn't get I/O for the connection to " + host + ":" + port + ", returning empty html");
-            // Same as above
-            throttler.reset();
         }
 
         out.println("Crawler - Sec: " + LocalDateTime.now().getSecond());

@@ -19,10 +19,10 @@ public class RateLimiter {
     }
 
     /**
-     * Any thread which invokes this method can run at most once per {@code
-     * interval} milliseconds specified in this constructor. If the thread
-     * invokes this method under the specified interval (say, the thread is
-     * calling this method too frequent), then the thread will sleep for a
+     * Invocation on this method restricts current thread to run at most once
+     * per {@code interval} milliseconds specified in this constructor. If the
+     * thread invokes this method under the specified interval (say, the thread
+     * is calling this method too frequent), then the thread will sleep for a
      * particular length of time so that it effectively runs at most once per
      * {@code interval}.
      */
