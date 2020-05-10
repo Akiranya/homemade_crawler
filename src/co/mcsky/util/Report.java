@@ -35,12 +35,12 @@ public class Report {
          * Print the number of html pages and the number of non-html objects on the site (e.g. images)
          * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
          * */
-        out.printf("The number of html pages on the site: %s\n",
+        out.printf("The number of html pages on the site: %s%n",
                    crawled.stream()
                           .filter(u -> u.getStatusCode().isPresent())
                           .filter(u -> u.getStatusCode().get() == StatusCode.OK)
                           .count());
-        out.printf("The number of non-html objects on the site: %s\n",
+        out.printf("The number of non-html objects on the site: %s%n",
                    crawled.stream()
                           .mapToInt(u -> u.getNonHTMLObjects().size())
                           .sum());
@@ -55,7 +55,7 @@ public class Report {
                .filter(u -> u.getContentLength().isPresent())
                .filter(u -> u.getStatusCode().get() == StatusCode.OK)
                .min(Comparator.comparingInt(u -> u.getContentLength().get()))
-               .ifPresent(u -> out.printf("Smallest html page: %s (%s bytes)\n",
+               .ifPresent(u -> out.printf("Smallest html page: %s (%s bytes)%n",
                                           u.getURL().toString(),
                                           u.getContentLength().orElse(-1)));
         crawled.stream()
@@ -63,7 +63,7 @@ public class Report {
                .filter(u -> u.getContentLength().isPresent())
                .filter(u -> u.getStatusCode().get() == StatusCode.OK)
                .max(Comparator.comparingInt(u -> u.getContentLength().get()))
-               .ifPresentOrElse(html -> out.printf("Largest html page: %s (%s bytes)\n",
+               .ifPresentOrElse(html -> out.printf("Largest html page: %s (%s bytes)%n",
                                                    html.getURL().toString(),
                                                    html.getContentLength().orElse(-1)),
                                 () -> out.println("No largest html page found."));
@@ -79,7 +79,7 @@ public class Report {
                .filter(html -> html.getModifiedTime().isPresent())
                .min(Comparator.comparing(u -> u.getModifiedTime().get()))
                .filter(html -> html.getModifiedTime().isPresent())
-               .ifPresent(html -> out.printf("Oldest modified page: %s (Date: %s)\n",
+               .ifPresent(html -> out.printf("Oldest modified page: %s (Date: %s)%n",
                                              html.getURL().toString(),
                                              html.getModifiedTime().get()));
         crawled.stream()
@@ -87,7 +87,7 @@ public class Report {
                .filter(html -> html.getModifiedTime().isPresent())
                .max(Comparator.comparing(u -> u.getModifiedTime().get()))
                .filter(html -> html.getModifiedTime().isPresent())
-               .ifPresent(html -> out.printf("Most-recently modified page: %s (Date: %s)\n",
+               .ifPresent(html -> out.printf("Most-recently modified page: %s (Date: %s)%n",
                                              html.getURL().toString(),
                                              html.getModifiedTime().get()));
 
@@ -100,7 +100,7 @@ public class Report {
         crawled.stream()
                .filter(u -> u.getStatusCode().isPresent())
                .filter(u -> !u.getStatusCode().get().isValid())
-               .forEach(html -> out.printf(" - %s (Reason: %s %s)\n",
+               .forEach(html -> out.printf(" - %s (Reason: %s %s)%n",
                                            html.getURL().toString(),
                                            html.getStatusCode().get().code,
                                            html.getStatusCode().get()));
@@ -116,7 +116,7 @@ public class Report {
                .filter(html -> html.getStatusCode().get().isRedirected())
                .filter(html -> html.getRedirectTo().isPresent())
                .filter(html -> isOnSite(html.getRedirectTo().get()))
-               .forEach(html -> out.printf(" - %s -> %s\n",
+               .forEach(html -> out.printf(" - %s -> %s%n",
                                            html.getURL().toString(),
                                            html.getRedirectTo().get().toString()));
 
@@ -129,7 +129,7 @@ public class Report {
         out.println("A list of off-site URLs found:");
         crawled.stream()
                .filter(html -> !isOnSite(html.getURL()))
-               .forEach(html -> out.printf(" - %s -> %s\n",
+               .forEach(html -> out.printf(" - %s -> %s%n",
                                            html.getURL().toString(),
                                            html.isAlive()
                                            ? "web server available"
