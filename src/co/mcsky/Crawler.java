@@ -10,22 +10,30 @@ import java.util.LinkedList;
 
 import static java.lang.System.out;
 
-public class Main {
+/**
+ * A very primitive HTTP crawler.
+ */
+public class Crawler {
 
     public static void main(String[] args) {
+        if (args.length != 3) {
+            System.err.println("Usage: java Crawler <host name> <port number> <interval>");
+            System.exit(1);
+        }
+        var host = args[0];
+        var port = args[1];
+        var interval = Integer.parseInt(args[2]); // 1 request per X seconds
+        var site = new SimpleURL("http://" + host + ":" + port);
+
         /*
             Breadth-first search the site.
             Theoretically, it can crawl URLs of arbitrary depth on the site.
         */
 
-        // The site to crawl for
-        var site = new SimpleURL("http://comp3310.ddns.net:7880");
-
         // Only the hosts in the whitelist will be crawled, otherwise skipping and reporting
         var whitelist = new HashSet<String>() {{
             add(site.getHostPort());
         }};
-        var interval = 1L; // 1 request per 2 seconds request rate
         var crawler = new SimpleCrawler(interval * 1000L, whitelist);
 
         // Start BFS
@@ -52,7 +60,7 @@ public class Main {
         */
 
         out.println("* Crawling has completed...");
-        out.println("* Generating report...\n");
+        out.println("* Generating report...");
         new Report(site, crawledAll);
     }
 
