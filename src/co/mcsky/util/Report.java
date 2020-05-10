@@ -17,6 +17,7 @@ public class Report {
     private final SimpleURL site;
 
     /**
+     * @param site    the website to crawl
      * @param crawled a {@link Set} of crawled html pages represented by {@link
      *                SimpleURL}
      */
@@ -136,6 +137,13 @@ public class Report {
                                            : "web server unavailable"));
     }
 
+    /**
+     * Check whether a URL is on-site or not.
+     *
+     * @param test the URL to check for whether it is on-site or not
+     *
+     * @return whether the URL is on-site or not
+     */
     private boolean isOnSite(SimpleURL test) {
         return this.site.getHost().equals(test.getHost()) && this.site.getPort() == test.getPort();
     }
