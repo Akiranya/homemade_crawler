@@ -36,6 +36,7 @@ public class SimpleCrawler {
         throttler.limit(); // Method call rate limiting
 
         var wrapper = new SimpleHTML(url, null); // Initialize wrapper with concrete URL but null
+
         if (!whitelist.contains(url.getHostPort())) {
             System.err.println(url.getHostPort() + " not in whitelist, skipped and returning empty wrapper");
             System.err.println();

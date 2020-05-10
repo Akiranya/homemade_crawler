@@ -49,6 +49,9 @@ public final class SimpleHTML {
      */
     public SimpleHTML(SimpleURL url, String raw) {
         this.url = Objects.requireNonNull(url, "URL cannot be null");
+
+        // NULL_RESPONSE means that the URL does not have a valid web server,
+        // and this value is determined and given by the crawler
         this.raw = Objects.requireNonNullElse(raw, NULL_RESPONSE);
 
         this.statusCode = ofNullable(StringUtil.extractStatusCode(this.raw))
@@ -175,7 +178,7 @@ public final class SimpleHTML {
     }
 
     /**
-     * @return true if the URL leads to a valid web server, false else wise
+     * @return true if the URL has a valid web server, false else wise
      */
     public boolean isAlive() {
         return !raw.equals(NULL_RESPONSE);

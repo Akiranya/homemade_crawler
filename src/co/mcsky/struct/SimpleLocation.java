@@ -16,17 +16,19 @@ public final class SimpleLocation {
         /*
             The literal URL in the field of Location may not have the same port
             as its "parent" html page. Say, "http://comp3310.ddns.net:7880/A/1A.html" with port 7880
-            is a valid html page with status code 301, and the value in the Location field
-            is, however, "http://comp3310.ddns.net/B/29.html" which indicates port 80.
+            is a valid html page with status code 301, but the value in the Location field
+            is "http://comp3310.ddns.net/B/29.html" which indicates port 80.
 
             In other words, non-standard ports are not explicitly referenced in http redirection.
 
             Nevertheless, in the example above, our browsers will correctly redirect
             to "http://comp3310.ddns.net:7880/B/29.html" instead of "http://comp3310.ddns.net/B/29.html".
 
+            We have to deal with such cases as it would cause the counting URLs wrong.
+
             It might be OK to let the SimpleCrawler to handle such case,
-            but to keep my code organized, SimpleCrawler should always seek exactly
-            whatever URL (including port) I pass into it.
+            but to keep my code simple and organized, SimpleCrawler should always
+            seek EXACTLY whatever URL (including port) passed into it.
 
             So I'm going to handle such case here.
 

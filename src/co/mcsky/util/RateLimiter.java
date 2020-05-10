@@ -21,7 +21,7 @@ public class RateLimiter {
                 Thread.sleep(left());
                 lastExecute = System.currentTimeMillis();
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                System.err.println("Waiting terminated early");
             }
         }
     }
