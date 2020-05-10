@@ -8,6 +8,7 @@ import co.mcsky.util.SimpleCrawler;
 import java.util.HashSet;
 import java.util.LinkedList;
 
+import static java.lang.System.in;
 import static java.lang.System.out;
 
 public class Main {
@@ -18,27 +19,21 @@ public class Main {
             Theoretically, it can crawl URLs of arbitrary depth on the site.
         */
 
-        // BFS stuff
-        var que = new LinkedList<SimpleHTML>();
-        var crawled = new HashSet<SimpleURL>();
-
-        // Store all what we crawl
-        var crawledAll = new HashSet<SimpleHTML>();
-
-        // target URL
+        // Where to start the search?
         var targetURL = new SimpleURL("http://comp3310.ddns.net:7880");
-        // Only hosts in the whitelist will be crawled, otherwise skipping and reporting
+
+        // Only the hosts in the whitelist will be crawled, otherwise skipping and reporting
         var whitelist = new HashSet<String>() {{
             add(targetURL.getHostPort());
         }};
+        var interval = 2L; // 1 request per 2 seconds request rate
+        var crawler = new SimpleCrawler(interval * 1000L, whitelist);
 
-        // Initialize our crawler
-        var crawler = new SimpleCrawler(1L * 1000L, whitelist);
-
-        // Try to crawl the first html page
+        // Start BFS
         var rootHTML = crawler.request(targetURL);
-
-        // BFS stuff
+        var que = new LinkedList<SimpleHTML>();
+        var crawled = new HashSet<SimpleURL>();
+        var crawledAll = new HashSet<SimpleHTML>(); // Store all what we crawl
         crawled.add(rootHTML.getURL());
         que.add(rootHTML);
         while (!que.isEmpty()) {

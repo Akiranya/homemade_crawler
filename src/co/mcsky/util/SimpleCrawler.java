@@ -33,7 +33,7 @@ public class SimpleCrawler {
      * url}
      */
     public SimpleHTML request(SimpleURL url) {
-        var wrapper = new SimpleHTML(url, null); // Initialize wrapper with concrete URL but null
+        var wrapper = new SimpleHTML(url, null); // Initialize wrapper with concrete URL but null response
 
         if (!whitelist.contains(url.getHostPort())) {
             System.err.println(url.getHostPort() + " not in whitelist, skipped and returning empty wrapper");
@@ -42,7 +42,7 @@ public class SimpleCrawler {
         }
 
         // Rate limiting should happen AFTER the whitelist checking to avoid unnecessary waiting
-        throttler.limit(); // Method call rate limiting
+        throttler.limit();
 
         var request = String.format("GET %s HTTP/1.0\r\n\r\n", url.getAbsPath());
         var host = url.getHost();
@@ -71,10 +71,10 @@ public class SimpleCrawler {
         }
 
         System.out.println("Crawler - Request: \"" + request.replaceAll("([\r\n]*)", "") + "\"");
-        System.out.println("Crawler - URL: " + url.getUrl());
+        System.out.println("Crawler - URL: " + url.toString());
         System.out.println("Crawler - Status code: " + wrapper.getStatusCode());
         wrapper.getModifiedTime().ifPresent(time -> System.out.println("Crawler - Modified time: " + time));
-        wrapper.getLocation().ifPresent(location -> System.out.println("Crawler - Location: " + location.getTo().getUrl()));
+        wrapper.getLocation().ifPresent(location -> System.out.println("Crawler - Location: " + location.getTo().toString()));
         System.out.println();
         return wrapper;
     }

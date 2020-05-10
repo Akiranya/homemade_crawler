@@ -7,25 +7,26 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.lang.Integer.parseInt;
 import static java.util.Optional.ofNullable;
 
 /**
- * This class represents a html page related to a instance of {@link SimpleURL}.
- * The html page may or may not exist, depending on whether {@link SimpleURL}
- * links to a valid html page or not during the instantiation of this class.
+ * This class represents a html page and a related instance of {@link
+ * SimpleURL}. The html page may or may not exist, depending on whether {@link
+ * SimpleURL} points to a valid html page or not, during the instantiation of
+ * this class.
  *
  * <p>In other words, this class at least contains a instance of {@link
- * SimpleURL}. If the {@link SimpleURL#getUrl()} is a valid URL (say, we can
- * obtain a HTML page from it, including 40x and 50x) then this class will
- * contain relevant information about the html page.
+ * SimpleURL}. If the {@link SimpleURL} is a valid URL (say, we can obtain a
+ * HTML page from it, including 40x and 50x) then this class will contain
+ * relevant information about the html page.
  *
  * <p>This class provides convenient methods for getting relevant information
- * about its internal html page (say, {@link #getModifiedTime()}). Typically,
- * these getter methods are there for generating a good report for the
- * assignment ;)
+ * about its internal html page. Typically, these getter methods are there for
+ * generating a good report for the assignment.
  *
  * <p>It is {@code final} so that there is no need to take care of states.
  */
@@ -34,7 +35,7 @@ public final class SimpleHTML {
     private static final String NULL_RESPONSE = "";
     private final SimpleURL url;
     private final String response;
-    private final List<SimpleURL> innerURL;
+    private final Set<SimpleURL> innerURL;
     private final int contentLength;
     private final StatusCode statusCode;
     private final LocalDateTime modifiedTime;
@@ -51,7 +52,7 @@ public final class SimpleHTML {
         this.url = Objects.requireNonNull(url, "URL cannot be null");
 
         // NULL_RESPONSE means that the URL does not have a valid web server,
-        // and this value is determined and given by the crawler
+        // and this value should be determined and given by the crawler
         this.response = Objects.requireNonNullElse(response, NULL_RESPONSE);
 
         this.statusCode = ofNullable(StringUtil.extractStatusCode(this.response))
@@ -60,12 +61,11 @@ public final class SimpleHTML {
                 .flatMap(s -> Optional.of(StatusCode.matchCode(s)))
                 .get();
 
-        // We parse the modified time so that we can compare it easily for the report
         this.modifiedTime = ofNullable(StringUtil.extractModifiedTime(this.response))
                 .map(timeString -> LocalDateTime.parse(timeString, DateTimeFormatter.RFC_1123_DATE_TIME))
                 .orElse(null);
 
-        // This is the size of html page (confirmed by Markus)
+        // Content-Length is the size of html page (confirmed by Markus)
         // See: https://wattlecourses.anu.edu.au/mod/forum/discuss.php?d=605237
         this.contentLength = ofNullable(StringUtil.extractContentLength(this.response))
                 .or((() -> Optional.of("-1")))
@@ -73,7 +73,6 @@ public final class SimpleHTML {
                 .get();
 
         this.innerNonHTMLObjects = StringUtil.extractNonHTMLObjects(this.response);
-
         this.location = ofNullable(StringUtil.extractLocation(this.response))
                 .map(urlString -> new SimpleLocation(this.url, new SimpleURL(urlString)))
                 .orElse(null);
@@ -81,7 +80,6 @@ public final class SimpleHTML {
         /*
         Notes: some exceptional URL
             http://comp3310.ddns.net/B/29.html
-            http://www.canberratimes.com.au/
             http://comp3310.ddns.net:7880/C/307.html
             http://www.canberratimes.com.au/
             http://comp3310.ddns.net:7880/B/23.html (contains canberra times)
@@ -91,14 +89,8 @@ public final class SimpleHTML {
                                   .stream()
                                   .map(rawURL -> {
                                       if (rawURL.startsWith("http://") || rawURL.startsWith("https://")) {
-                                          // Case where the URL is already in full format
-                                          // e.g.1 http://comp3310.ddns.net/B/29.html
-                                          // e.g.2 http://comp3310.ddns.net:7880/C/307.html
                                           return new SimpleURL(rawURL);
                                       } else {
-                                          // Case where the URL is not in full format
-                                          // then we try to format it into full URL.
-                                          // e.g. A/30.html, /B/29.html
                                           var baseURL = url.getProtocol() + "://" + url.getHost() + ":" + url.getPort();
                                           if (rawURL.startsWith("/")) {
                                               return new SimpleURL(baseURL + rawURL);
@@ -107,11 +99,11 @@ public final class SimpleHTML {
                                           }
                                       }
                                   })
-                                  .collect(Collectors.toList());
+                                  .collect(Collectors.toSet());
     }
 
     /**
-     * @return the raw HTML page strings from the server (say, the one starting
+     * @return the raw http responses from the server (say, the string starting
      * with "HTTP/1.1 200 OK ..."
      */
     public String getResponse() {
@@ -131,7 +123,7 @@ public final class SimpleHTML {
      * @return a {@link List} of URLs inside the html page if presenting,
      * otherwise returns empty {@link List}
      */
-    public List<SimpleURL> getInnerURL() {
+    public Set<SimpleURL> getInnerURL() {
         return innerURL;
     }
 
@@ -155,7 +147,7 @@ public final class SimpleHTML {
      * the first place. That is, for example, if this html page is 30x, then we
      * keep the 30x page instead of the page which it redirects to. Note that it
      * returns {@link StatusCode#UNKNOWN} if we cannot access to the html page
-     * via the URL,
+     * via the URL
      */
     public StatusCode getStatusCode() {
         return statusCode;
@@ -200,7 +192,68 @@ public final class SimpleHTML {
     // URL should be enough to tell distinct html pages.
     @Override
     public int hashCode() {
-        return this.getURL().getUrl().hashCode();
+        return this.url.toString().hashCode();
+    }
+
+    /**
+     * Represents a {@code Location}. See <a href="https://www.rfc-editor.org/rfc/rfc1945.html#section-10.11">RFC
+     * 1945 10.11</a>. It is {@code final} so that there is no need to take care
+     * of states.
+     */
+    public static final class SimpleLocation {
+
+        private final SimpleURL from;
+        private final SimpleURL to;
+
+        public SimpleLocation(SimpleURL from, SimpleURL to) {
+            this.from = from;
+
+            /*
+                The literal URL in the field of Location may not have the same port
+                as its "parent" html page. Say, "http://comp3310.ddns.net:7880/A/1A.html" with port 7880
+                is a valid html page with status code 301, but the value in the Location field
+                is "http://comp3310.ddns.net/B/29.html" which indicates port 80.
+
+                In other words, non-standard ports are not explicitly referenced in http redirection.
+
+                Nevertheless, in the example above, our browsers will correctly redirect
+                to "http://comp3310.ddns.net:7880/B/29.html" instead of "http://comp3310.ddns.net/B/29.html".
+
+                We have to deal with such cases as it would cause the counting URLs wrong.
+
+                It might be OK to let the SimpleCrawler to handle such case,
+                but to keep my code simple and organized, SimpleCrawler should always
+                seek EXACTLY whatever URL (including port) passed into it.
+
+                So I'm going to handle such case here.
+
+                See: https://wattlecourses.anu.edu.au/mod/forum/discuss.php?d=603754
+            */
+            if (from.getHost().equalsIgnoreCase(to.getHost())) {
+                // Fix the "wrong" port by explicitly setting the port of redirection to its parent's.
+                var trueURL = to.getProtocol() + "://" + to.getHost() + ":" + from.getPort() + to.getAbsPath();
+                this.to = new SimpleURL(trueURL);
+            } else {
+                this.to = to;
+            }
+        }
+
+        public SimpleURL getFrom() {
+            return from;
+        }
+
+        public SimpleURL getTo() {
+            return to;
+        }
+
+        /**
+         * @return an URL is said to be on-site if its {@code host} and {@code
+         * port} are identical to the URL of the html page it resides
+         */
+        public boolean isOnSite() {
+            return from.getHost().equals(to.getHost()) && from.getPort() == to.getPort();
+        }
+
     }
 
 }

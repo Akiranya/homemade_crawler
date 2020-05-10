@@ -13,7 +13,7 @@ import static java.lang.Integer.parseInt;
  */
 public final class SimpleURL {
 
-    private final String url;
+    private final String URL;
     private final String host;
     private final int port;
     private final String protocol;
@@ -44,16 +44,9 @@ public final class SimpleURL {
 
         // Reconstruct the URL into very standard form,
         // this should ensure that distinct URLs are really distinct
-        this.url = protocol + "://" + host + ":" + port + absPath +
+        this.URL = protocol + "://" + host + ":" + port + absPath +
                    (query.equals("") ? "" : "?=" + query) +
                    (fragment.equals("") ? "" : "#" + fragment);
-    }
-
-    /**
-     * @return the full URL
-     */
-    public String getUrl() {
-        return url;
     }
 
     /**
@@ -111,6 +104,11 @@ public final class SimpleURL {
     }
 
     @Override
+    public String toString() {
+        return URL;
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (obj == null) {
             return false;
@@ -126,7 +124,7 @@ public final class SimpleURL {
     // URL should be enough to tell distinct html pages.
     @Override
     public int hashCode() {
-        return this.url.hashCode();
+        return this.URL.hashCode();
     }
 
 }
