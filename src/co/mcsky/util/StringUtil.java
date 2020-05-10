@@ -1,17 +1,12 @@
 package co.mcsky.util;
 
-import co.mcsky.struct.StatusCode;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.regex.Pattern;
 
-import static java.lang.Integer.parseInt;
-
 /**
- * This class simply extracts specified strings from a HTML page. Methods of
- * this class either return {@link String}, {@link List<String>}, {@link int} or
+ * This class simply extracts strings with certain pattern from a HTML page.
+ * Methods of this class either return {@link String}, {@link List<String>}, or
  * just {@link null} if necessary. Further processing of the extracted strings
  * should be done in other classes.
  */
@@ -50,34 +45,30 @@ public class StringUtil {
      * @param HTMLRawContent the whole raw HTML page string
      *
      * @return Returns the status code of the html page if presenting, otherwise
-     * returns {@link StatusCode#UNKNOWN}
+     * returns {@code null}
      */
-    public static StatusCode extractStatusCode(String HTMLRawContent) {
+    public static String extractStatusCode(String HTMLRawContent) {
         var pattern = Pattern.compile("HTTP/\\d\\.\\d (\\d{3}) ");
         var matcher = pattern.matcher(HTMLRawContent);
         if (matcher.find()) {
-            return Optional.ofNullable(matcher.group(1))
-                           .or(() -> Optional.of("0")) // If the matcher returns null, then parse 0 (UNKNOWN) instead
-                           .flatMap(s -> Optional.of(parseInt(s)))
-                           .flatMap(s -> Optional.of(StatusCode.matchCode(s)))
-                           .get();
+            return matcher.group(1);
         }
-        return StatusCode.UNKNOWN;
+        return null;
     }
 
     /**
      * @param HTMLRawContent the whole raw HTML page string
      *
      * @return Returns the {@code Content-Length} of the html page if
-     * presenting, otherwise returns {@code -1}
+     * presenting, otherwise returns {@code null}
      */
-    public static int extractContentLength(String HTMLRawContent) {
+    public static String extractContentLength(String HTMLRawContent) {
         var pattern = Pattern.compile("Content-Length: (\\d+)");
         var matcher = pattern.matcher(HTMLRawContent);
         if (matcher.find()) {
-            return parseInt(matcher.group(1));
+            return matcher.group(1);
         }
-        return -1;
+        return null;
     }
 
     /**
