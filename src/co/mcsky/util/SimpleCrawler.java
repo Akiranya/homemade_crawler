@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.time.LocalDateTime;
 import java.util.Scanner;
 import java.util.Set;
 
@@ -31,15 +32,7 @@ public class SimpleCrawler {
      * url}
      */
     public SimpleHTML request(SimpleURL url) {
-        var wrapper = new SimpleHTML(url, null); // Initialize wrapper with concrete URL but null response
-
-        if (!whitelist.contains(url.getHostPort())) {
-            out.println(url.getHostPort() + " not in whitelist, skipped and returning empty wrapper");
-            out.println();
-            return wrapper;
-        }
-
-        throttler.await(); // Rate limiting should happen AFTER the whitelist checking to avoid unnecessary waiting
+        var wrapper = new SimpleHTML(url, null, false);
 
         var request = String.format("GET %s HTTP/1.0\r\n\r\n", url.getAbsPath());
         var host = url.getHost();
@@ -48,6 +41,15 @@ public class SimpleCrawler {
              var out = new PrintWriter(socket.getOutputStream(), true);
              var in = new Scanner(new BufferedReader(new InputStreamReader(socket.getInputStream())))
         ) {
+            if (!whitelist.contains(url.getHostPort())) {
+                out.println(url.getHostPort() + " not in whitelist, skipped and returning empty wrapper");
+                out.println();
+                throttler.reset(); // Only consider rate limiting on the assessment server
+                return new SimpleHTML(url, null, true);
+            }
+
+            throttler.await(); // Rate limiting should happen AFTER the whitelist checking to avoid unnecessary waiting
+
             out.println(request); // Send http request to the server
             var httpContentBuilder = new StringBuilder();
             while (in.hasNextLine()) { // Read off lines from the server
@@ -55,7 +57,7 @@ public class SimpleCrawler {
                                   .append(getProperty("line.separator"));
             }
             // Store the message from the server
-            wrapper = new SimpleHTML(url, httpContentBuilder.toString());
+            wrapper = new SimpleHTML(url, httpContentBuilder.toString(), true);
         } catch (UnknownHostException e) {
             err.println("Unknown host " + host + ". Returns empty wrapper");
             // UnknownHost means that we actually haven't requested the server,
@@ -67,6 +69,7 @@ public class SimpleCrawler {
             throttler.reset();
         }
 
+        out.println("Crawler - Sec: " + LocalDateTime.now().getSecond());
         out.println("Crawler - URL: " + url.toString());
         wrapper.getStatusCode().ifPresent(code -> out.println("Crawler - Status code: " + code));
         wrapper.getModifiedTime().ifPresent(time -> out.println("Crawler - Modified time: " + time));

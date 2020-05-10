@@ -21,7 +21,9 @@ public class SimpleURL {
     private final String fragment;
 
     /**
-     * Creates a URL from string representation.
+     * Creates a URL from string representation. The URL has to follow the full
+     * format specified in RFC 1945 3.2.2, otherwise unexpected results would
+     * happen.
      */
     public SimpleURL(String spec) {
         // Debugger for this regex: https://regex101.com/r/Zx74z0/11

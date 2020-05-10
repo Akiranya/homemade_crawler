@@ -39,20 +39,25 @@ public class SimpleHTML {
     private final LocalDateTime modifiedTime;
     private final List<String> innerNonHTMLObjects;
     private final SimpleURL location;
+    private final boolean alive;
 
     /**
+     * Creates a HTML object. If the URL cannot establish a connection, then
+     * {@code null} should pass into {@code response} and {@code false} should
+     * pass into {@code alive}.
+     *
      * @param url      standard URL
      * @param response string representation of the http response from the
      *                 server if present, otherwise {@code null} must pass into
      *                 the constructor to indicate that the web server where the
      *                 URL resides is not available
+     * @param alive    whether the web server whether the URL resides is alive
+     *                 or not
      */
-    public SimpleHTML(SimpleURL url, String response) {
+    public SimpleHTML(SimpleURL url, String response, boolean alive) {
         this.url = Objects.requireNonNull(url, "URL cannot be null");
-
-        // NULL_RESPONSE means that this URL does not have a valid web server,
-        // and this value should be determined and given by SimpleCrawler
         this.response = Objects.requireNonNullElse(response, NULL_RESPONSE);
+        this.alive = alive;
 
         this.statusCode = ofNullable(StringUtil.extractStatusCode(this.response))
                 .flatMap(s -> of(parseInt(s)))
@@ -189,7 +194,7 @@ public class SimpleHTML {
      * @return true if this URL has a valid web server, false else wise
      */
     public boolean isAlive() {
-        return !response.equals(NULL_RESPONSE);
+        return alive;
     }
 
     @Override
