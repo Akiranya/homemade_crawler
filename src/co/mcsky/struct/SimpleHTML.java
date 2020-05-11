@@ -33,11 +33,11 @@ public class SimpleHTML {
     private static final String NULL_RESPONSE = "";
     private final SimpleURL url;
     private final String response;
-    private final List<SimpleURL> innerURL;
+    private final List<SimpleURL> innerURLs;
     private final int contentLength;
     private final StatusCode statusCode;
     private final LocalDateTime modifiedTime;
-    private final List<String> innerNonHTMLObjects;
+    private final List<String> images;
     private final SimpleURL location;
     private final boolean alive;
 
@@ -72,7 +72,7 @@ public class SimpleHTML {
         this.contentLength = ofNullable(StringUtil.extractContentLength(this.response))
                 .flatMap(s -> of(parseInt(s)))
                 .orElse(-1);
-        this.innerNonHTMLObjects = StringUtil.extractNonHTMLObjects(this.response);
+        this.images = StringUtil.extractNonHTMLObjects(this.response);
         this.location = ofNullable(StringUtil.extractLocation(this.response))
                 .flatMap(u -> {
                 /*
@@ -111,9 +111,9 @@ public class SimpleHTML {
         /*
          * Always store URLs in full format for the purpose of comparing!
          * */
-        this.innerURL = StringUtil.extractURL(this.response)
-                                  .stream()
-                                  .map(rawURL -> {
+        this.innerURLs = StringUtil.extractURL(this.response)
+                                   .stream()
+                                   .map(rawURL -> {
                                       if (rawURL.startsWith("http://") || rawURL.startsWith("https://")) {
                                           return new SimpleURL(rawURL);
                                       } else {
@@ -125,7 +125,7 @@ public class SimpleHTML {
                                           }
                                       }
                                   })
-                                  .collect(Collectors.toList());
+                                   .collect(Collectors.toList());
     }
 
     /**
@@ -147,8 +147,8 @@ public class SimpleHTML {
      * @return a {@link List} of URLs inside this html page if present,
      * otherwise returns empty {@link List}
      */
-    public List<SimpleURL> getInnerURL() {
-        return innerURL;
+    public List<SimpleURL> getInnerURLs() {
+        return innerURLs;
     }
 
     /**
@@ -156,7 +156,7 @@ public class SimpleHTML {
      * present, otherwise returns empty {@link List}
      */
     public List<String> getNonHTMLObjects() {
-        return innerNonHTMLObjects;
+        return images;
     }
 
     /**
