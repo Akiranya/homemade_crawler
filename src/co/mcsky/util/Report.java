@@ -53,14 +53,14 @@ public class Report {
         // TODO Should we include images?
         crawled.stream()
                .filter(u -> u.getContentLength().isPresent() && u.getStatusCode().isPresent() &&
-                            u.getStatusCode().get() == StatusCode.OK)
+                            u.getStatusCode().get().isValid())
                .min(Comparator.comparingInt(u -> u.getContentLength().get()))
                .ifPresent(u -> out.printf("Smallest html page: %s (%s bytes)%n",
                                           u.getURL().toString(),
                                           u.getContentLength().orElse(-1)));
         crawled.stream()
                .filter(u -> u.getStatusCode().isPresent() && u.getContentLength().isPresent() &&
-                            u.getStatusCode().get() == StatusCode.OK)
+                            u.getStatusCode().get().isValid())
                .max(Comparator.comparingInt(u -> u.getContentLength().get()))
                .ifPresentOrElse(html -> out.printf("Largest html page: %s (%s bytes)%n",
                                                    html.getURL().toString(),

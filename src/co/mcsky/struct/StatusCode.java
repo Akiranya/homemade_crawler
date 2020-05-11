@@ -53,7 +53,7 @@ public enum StatusCode {
     // TODO To confirm: what status codes should be classified as valid URLs?
     public boolean isValid() {
         return switch (this) {
-            case OK, CREATED, ACCEPTED, NO_CONTENT, MOVED_PERMANENTLY, MOVED_TEMPORARILY -> true;
+            case OK, CREATED, ACCEPTED, NO_CONTENT, MOVED_PERMANENTLY, MOVED_TEMPORARILY, NOT_MODIFIED -> true;
             default -> false;
         };
     }
