@@ -66,7 +66,7 @@ public enum StatusCode {
 
     public boolean status40x() {
         return switch (this) {
-            case BAD_REQUEST, UNAUTHORIZED, NOT_MODIFIED, FORBIDDEN -> true;
+            case BAD_REQUEST, NOT_FOUND, FORBIDDEN, UNAUTHORIZED -> true;
             default -> false;
         };
     }

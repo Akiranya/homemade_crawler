@@ -63,10 +63,9 @@ public class Report {
                .filter(u -> u.getStatusCode().isPresent() && u.getContentLength().isPresent() &&
                             u.getStatusCode().get().status20x())
                .max(Comparator.comparingInt(u -> u.getContentLength().get()))
-               .ifPresentOrElse(html -> out.printf("Largest html page: %s (%s bytes)%n",
-                                                   html.getURL().toString(),
-                                                   html.getContentLength().orElse(-1)),
-                                () -> out.println("No largest html page found."));
+               .ifPresent(u -> out.printf("Largest html page: %s (%s bytes)%n",
+                                             u.getURL().toString(),
+                                             u.getContentLength().orElse(-1)));
 
         /*
          * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -76,20 +75,20 @@ public class Report {
         crawled.stream()
                // 404 html pages have null modified time headers,
                // so we have to ignore them to avoid NPE.
-               .filter(html -> html.getModifiedTime().isPresent())
+               .filter(u -> u.getModifiedTime().isPresent())
                .min(Comparator.comparing(u -> u.getModifiedTime().get()))
-               .filter(html -> html.getModifiedTime().isPresent())
-               .ifPresent(html -> out.printf("Oldest modified page: %s (Date: %s)%n",
-                                             html.getURL().toString(),
-                                             html.getModifiedTime().get()));
+               .filter(u -> u.getModifiedTime().isPresent())
+               .ifPresent(u -> out.printf("Oldest modified page: %s (Date: %s)%n",
+                                             u.getURL().toString(),
+                                             u.getModifiedTime().get()));
         crawled.stream()
                // Same as above
-               .filter(html -> html.getModifiedTime().isPresent())
+               .filter(u -> u.getModifiedTime().isPresent())
                .max(Comparator.comparing(u -> u.getModifiedTime().get()))
-               .filter(html -> html.getModifiedTime().isPresent())
-               .ifPresent(html -> out.printf("Most-recently modified page: %s (Date: %s)%n",
-                                             html.getURL().toString(),
-                                             html.getModifiedTime().get()));
+               .filter(u -> u.getModifiedTime().isPresent())
+               .ifPresent(u -> out.printf("Most-recently modified page: %s (Date: %s)%n",
+                                             u.getURL().toString(),
+                                             u.getModifiedTime().get()));
 
         /*
          * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -100,9 +99,9 @@ public class Report {
         out.println("A list of invalid URLs (not) found (404):");
         crawled.stream()
                .filter(u -> u.getStatusCode().isPresent() && u.getStatusCode().get().status40x())
-               .forEach(html -> out.printf(" - %s (Reason: %s)%n",
-                                           html.getURL().toString(),
-                                           html.getStatusCode().get().toString()));
+               .forEach(u -> out.printf(" - %s (Reason: %s)%n",
+                                           u.getURL().toString(),
+                                           u.getStatusCode().get().toString()));
 
         /*
          * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@

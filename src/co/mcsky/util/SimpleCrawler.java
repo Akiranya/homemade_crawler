@@ -32,6 +32,8 @@ public class SimpleCrawler {
     }
 
     /**
+     * Sends a http GET request to given URL.
+     *
      * @param url standard URL
      *
      * @return a html page object ({@link SimpleHTML}) obtained from the {@code
