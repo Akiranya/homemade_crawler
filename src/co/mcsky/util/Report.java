@@ -29,6 +29,7 @@ public class Report {
          * Print the total number of distinct URLs found on the site (including any errors and redirects)
          * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
          * */
+        // TODO 图片的 URLs 也要数进来
         out.printf("Total no of distinct URLs: %s%n", crawled.size());
 
         /*
@@ -40,6 +41,7 @@ public class Report {
                    crawled.stream()
                           .filter(u -> u.getStatusCode().isPresent() && u.getStatusCode().get() == StatusCode.OK)
                           .count());
+        // TODO 不能只数 <img> tag 的数量，应该要检测是否真的存在图片（文件）
         out.printf("The number of non-html objects on the site: %s%n",
                    crawled.stream()
                           .mapToInt(u -> u.getNonHTMLObjects().size())
@@ -50,17 +52,16 @@ public class Report {
          * The smallest and largest html pages, and their sizes
          * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
          * */
-        // TODO Should we include images?
         crawled.stream()
                .filter(u -> u.getContentLength().isPresent() && u.getStatusCode().isPresent() &&
-                            u.getStatusCode().get().isValid())
+                            u.getStatusCode().get().status20x())
                .min(Comparator.comparingInt(u -> u.getContentLength().get()))
                .ifPresent(u -> out.printf("Smallest html page: %s (%s bytes)%n",
                                           u.getURL().toString(),
                                           u.getContentLength().orElse(-1)));
         crawled.stream()
                .filter(u -> u.getStatusCode().isPresent() && u.getContentLength().isPresent() &&
-                            u.getStatusCode().get().isValid())
+                            u.getStatusCode().get().status20x())
                .max(Comparator.comparingInt(u -> u.getContentLength().get()))
                .ifPresentOrElse(html -> out.printf("Largest html page: %s (%s bytes)%n",
                                                    html.getURL().toString(),
@@ -95,9 +96,10 @@ public class Report {
          * A list of invalid URLs (not) found (404)
          * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
          * */
+        // TODO To confirm: what status codes should be classified as valid URLs?
         out.println("A list of invalid URLs (not) found (404):");
         crawled.stream()
-               .filter(u -> u.getStatusCode().isPresent() && !u.getStatusCode().get().isValid())
+               .filter(u -> u.getStatusCode().isPresent() && u.getStatusCode().get().status40x())
                .forEach(html -> out.printf(" - %s (Reason: %s)%n",
                                            html.getURL().toString(),
                                            html.getStatusCode().get().toString()));
@@ -109,7 +111,7 @@ public class Report {
          * */
         out.println("A list of on-site redirected URLs:");
         crawled.stream()
-               .filter(u -> u.getStatusCode().isPresent() && u.getStatusCode().get().isRedirected() &&
+               .filter(u -> u.getStatusCode().isPresent() && u.getStatusCode().get().status30x() &&
                             u.getRedirectTo().isPresent() && isOnSite(u.getRedirectTo().get()))
                .forEach(u -> out.printf(" - %s -> %s%n",
                                         u.getURL().toString(),

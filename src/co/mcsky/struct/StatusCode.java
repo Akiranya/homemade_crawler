@@ -50,17 +50,30 @@ public enum StatusCode {
         };
     }
 
-    // TODO To confirm: what status codes should be classified as valid URLs?
-    public boolean isValid() {
+    public boolean status20x() {
         return switch (this) {
-            case OK, CREATED, ACCEPTED, NO_CONTENT, MOVED_PERMANENTLY, MOVED_TEMPORARILY, NOT_MODIFIED -> true;
+            case OK, CREATED, ACCEPTED, NO_CONTENT -> true;
             default -> false;
         };
     }
 
-    public boolean isRedirected() {
+    public boolean status30x() {
         return switch (this) {
             case MOVED_PERMANENTLY, MOVED_TEMPORARILY, NOT_MODIFIED -> true;
+            default -> false;
+        };
+    }
+
+    public boolean status40x() {
+        return switch (this) {
+            case BAD_REQUEST, UNAUTHORIZED, NOT_MODIFIED, FORBIDDEN -> true;
+            default -> false;
+        };
+    }
+
+    public boolean status50x() {
+        return switch (this) {
+            case INTERNAL_SERVER_ERROR, NOT_IMPLEMENTED, BAD_GATEWAY, SERVICE_UNAVAILABLE -> true;
             default -> false;
         };
     }

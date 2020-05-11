@@ -40,7 +40,7 @@ public class SimpleCrawler {
     public SimpleHTML request(SimpleURL url) {
         var html = new SimpleHTML(url, null, false);
 
-        var request = String.format("GET %s HTTP/1.0\r\n\r\n", url.getAbsPath());
+        var request = String.format("GET %s HTTP/1.0\r\n\r\n", url.getPath());
         var host = url.getHost();
         var port = url.getPort();
         try (var socket = new Socket(host, port);

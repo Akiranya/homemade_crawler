@@ -19,7 +19,7 @@ public class StringUtil {
      * otherwise returns an empty {@link List}
      */
     public static List<String> extractURL(String response) {
-        var pattern = Pattern.compile("<a href=\"(.*?)\">.*</a>", Pattern.MULTILINE);
+        var pattern = Pattern.compile("<a href=\"(.*?)\">.*?</a>", Pattern.MULTILINE);
         var matcher = pattern.matcher(response);
         List<String> urls = new ArrayList<>();
         matcher.results().forEach(r -> urls.add(r.group(1)));
@@ -36,7 +36,7 @@ public class StringUtil {
         var pattern = Pattern.compile("Last-Modified: (.+)");
         var matcher = pattern.matcher(response);
         if (matcher.find()) {
-            return matcher.toMatchResult().group(1);
+            return matcher.group(1);
         }
         return null;
     }
@@ -79,7 +79,7 @@ public class StringUtil {
      */
     public static List<String> extractNonHTMLObjects(String response) {
         // For now it just finds all <img> tags on a html page
-        var pattern = Pattern.compile("<img src=\"(.*)\" .*>");
+        var pattern = Pattern.compile("<img src=\"(.*)\" .*?>", Pattern.MULTILINE);
         var matcher = pattern.matcher(response);
         List<String> images = new ArrayList<>();
         matcher.results().forEach(img -> images.add(img.group(1)));

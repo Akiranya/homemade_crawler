@@ -97,11 +97,10 @@ public class SimpleHTML {
                     var realTo = to.getProtocol() + "://" +
                                  to.getHost() + ":" +
                                  this.url.getPort() + // We modify the port to its "parent's"
-                                 to.getAbsPath();
+                                 to.getPath();
                     return of(new SimpleURL(realTo));
                 })
                 .orElse(null);
-
         /*
             Notes: some exceptional URL
                 http://comp3310.ddns.net:7880/B/25.html (contains images)
@@ -109,19 +108,20 @@ public class SimpleHTML {
                 http://www.canberratimes.com.au/ (off-site url)
                 http://comp3310.ddns.net:7880/B/23.html (contains canberra times)
         */
-
+        /*
+         * Always store URLs in full format for the purpose of comparing!
+         * */
         this.innerURL = StringUtil.extractURL(this.response)
                                   .stream()
                                   .map(rawURL -> {
                                       if (rawURL.startsWith("http://") || rawURL.startsWith("https://")) {
                                           return new SimpleURL(rawURL);
                                       } else {
-                                          var baseURL = url.getProtocol() + "://" + url.getHost() + ":" + url.getPort();
+                                          var base = url.getProtocol() + "://" + url.getHost() + ":" + url.getPort();
                                           if (rawURL.startsWith("/")) {
-                                              return new SimpleURL(baseURL + rawURL);
+                                              return new SimpleURL(base + rawURL);
                                           } else {
-                                              // TODO Add relative path first
-                                              return new SimpleURL(baseURL + "/" + rawURL);
+                                              return new SimpleURL(base + url.getDirectory() + rawURL);
                                           }
                                       }
                                   })

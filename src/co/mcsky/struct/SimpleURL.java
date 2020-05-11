@@ -1,10 +1,10 @@
 package co.mcsky.struct;
 
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.regex.Pattern;
 
 import static java.lang.Integer.parseInt;
+import static java.util.Optional.ofNullable;
 
 /**
  * Represents a {@code URL}. See <a href="https://www.rfc-editor.org/rfc/rfc1945.html#section-3.2.2">RFC1945
@@ -16,41 +16,39 @@ public class SimpleURL {
     private final String host;
     private final int port;
     private final String protocol;
-    private final String absPath;
+    private final String path;
+    private final String directory;
+    private final String file;
     private final String query;
     private final String fragment;
 
     /**
-     * Creates a URL from string representation. The URL has to follow the full
-     * format specified in RFC 1945 3.2.2, otherwise unexpected results would
-     * happen.
+     * Creates a HTTP URL from string representation.
      */
     public SimpleURL(String spec) {
-        // Debugger for this regex: https://regex101.com/r/Zx74z0/11
-        var regex = "^(?:([^:/?#]+):)?(?://([^/?:#]*)(?::(\\d*))?)?([^?#]+)?(?:\\?([^#]*))?(?:#(.+))?";
+        // Debugger for this regex: https://regex101.com/r/Zx74z0/16
+        var regex = "^(?:(http):)(?://([^/?:#]+)(?::(\\d+))?)([^?#]+)?(?:\\?([^#]*))?(?:#(.+))?";
         var pattern = Pattern.compile(regex);
         var matcher = pattern.matcher(spec);
         if (!matcher.find()) {
-            throw new IllegalArgumentException("Cannot recognize URL: " + spec);
+            throw new IllegalArgumentException("Cannot recognize HTTP URL: " + spec);
         }
-
+        this.protocol = ofNullable(matcher.group(1)).orElseThrow(() -> new NoSuchElementException("Only accepts HTTP scheme"));
+        this.host = ofNullable(matcher.group(2)).orElseThrow(() -> new NoSuchElementException("Host cannot be empty."));
+        this.port = parseInt(ofNullable(matcher.group(3)).orElse("80"));
+        this.path = ofNullable(matcher.group(4)).orElse("/");
+        this.query = ofNullable(matcher.group(5)).orElse("");
+        this.fragment = ofNullable(matcher.group(6)).orElse("");
+        matcher = Pattern.compile("(.*/)(.+)?").matcher(this.path);
+        this.directory = matcher.find() ? matcher.group(1) : "/";
+        this.file = ofNullable(matcher.group(2)).orElse("");
         /*
-            We ensure that each member has some value assigned.
-            Should save me from dealing with messy NPEs in other classes.
-        */
-
-        this.protocol = Optional.ofNullable(matcher.group(1)).orElseThrow(() -> new NoSuchElementException("Protocol cannot be empty"));
-        this.host = Optional.ofNullable(matcher.group(2)).orElseThrow(() -> new NoSuchElementException("Host cannot be empty."));
-        this.port = parseInt(Optional.ofNullable(matcher.group(3)).orElse("80"));
-        this.absPath = Optional.ofNullable(matcher.group(4)).orElse("/");
-        this.query = Optional.ofNullable(matcher.group(5)).orElse("");
-        this.fragment = Optional.ofNullable(matcher.group(6)).orElse("");
-
-        // Reconstruct this URL into very standard form.
-        // This should ensure that "distinct" URLs are really distinct.
-        // Say, "http://eee.com" without slash (i.e. absolute path) at the end
-        // is effectively identical to "http://eee.com/" with slash at the end.
-        this.URL = protocol + "://" + host + ":" + port + absPath +
+         * Reconstruct this URL into very standard form.
+         * This should ensure that "distinct" URLs are really distinct.
+         * Say, "http://eee.com" without slash (i.e. absolute path) at the end
+         * is effectively identical to "http://eee.com/" with slash at the end.
+         * */
+        this.URL = protocol + "://" + host + ":" + port + path +
                    (query.equals("") ? "" : "?=" + query) +
                    (fragment.equals("") ? "" : "#" + fragment);
     }
@@ -89,8 +87,22 @@ public class SimpleURL {
      * @return the absolute path of this URL if present in this URL, otherwise
      * just returns a {@code /} by default
      */
-    public String getAbsPath() {
-        return absPath;
+    public String getPath() {
+        return path;
+    }
+
+    /**
+     * @return the directory ending with slash {@code /} of this URL
+     */
+    public String getDirectory() {
+        return directory;
+    }
+
+    /**
+     * @return the file name of this URL, or empty string if one does not exist
+     */
+    public String getFile() {
+        return file;
     }
 
     /**
