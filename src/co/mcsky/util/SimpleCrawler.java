@@ -47,7 +47,7 @@ public class SimpleCrawler {
              var in = new Scanner(new BufferedReader(new InputStreamReader(socket.getInputStream())))
         ) {
             if (!whitelist.contains(url.getHostPort())) {
-                System.err.println(url.getHostPort() + " not in whitelist, skipped and returning empty response");
+                System.err.println("Crawler - " + url.getHostPort() + " not in whitelist, skipped and returning empty response");
                 return new SimpleHttpResponse(url, null, true);
             }
             throttler.await(); // Rate limiting should happen AFTER the whitelist checking to avoid unnecessary waiting
