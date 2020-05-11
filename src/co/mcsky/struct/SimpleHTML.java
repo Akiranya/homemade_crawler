@@ -58,25 +58,23 @@ public class SimpleHTML {
         this.url = Objects.requireNonNull(url, "URL cannot be null");
         this.response = Objects.requireNonNullElse(response, NULL_RESPONSE);
         this.alive = alive;
-
         this.statusCode = ofNullable(StringUtil.extractStatusCode(this.response))
                 .flatMap(s -> of(parseInt(s)))
                 .flatMap(s -> of(StatusCode.matchCode(s)))
                 .orElse(null);
-
         this.modifiedTime = ofNullable(StringUtil.extractModifiedTime(this.response))
-                .map(timeString -> LocalDateTime.parse(timeString, DateTimeFormatter.RFC_1123_DATE_TIME))
+                .flatMap(timeString -> of(LocalDateTime.parse(timeString, DateTimeFormatter.RFC_1123_DATE_TIME)))
                 .orElse(null);
-
-        // Content-Length is the size of this html page (confirmed by Markus)
-        // See: https://wattlecourses.anu.edu.au/mod/forum/discuss.php?d=605237
+        /*
+         * Content-Length is the size of this html page (confirmed by Markus)
+         * See: https://wattlecourses.anu.edu.au/mod/forum/discuss.php?d=605237
+         * */
         this.contentLength = ofNullable(StringUtil.extractContentLength(this.response))
                 .flatMap(s -> of(parseInt(s)))
                 .orElse(-1);
-
         this.innerNonHTMLObjects = StringUtil.extractNonHTMLObjects(this.response);
         this.location = ofNullable(StringUtil.extractLocation(this.response))
-                .map(u -> {
+                .flatMap(u -> {
                 /*
                     The literal URL in the field of Location may not have the same port
                     as its "parent" html page. In other words, non-standard ports are not
@@ -100,7 +98,7 @@ public class SimpleHTML {
                                  to.getHost() + ":" +
                                  this.url.getPort() + // We modify the port to its "parent's"
                                  to.getAbsPath();
-                    return new SimpleURL(realTo);
+                    return of(new SimpleURL(realTo));
                 })
                 .orElse(null);
 
@@ -122,6 +120,7 @@ public class SimpleHTML {
                                           if (rawURL.startsWith("/")) {
                                               return new SimpleURL(baseURL + rawURL);
                                           } else {
+                                              // TODO Add relative path first
                                               return new SimpleURL(baseURL + "/" + rawURL);
                                           }
                                       }
