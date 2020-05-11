@@ -19,7 +19,7 @@ public class StringUtil {
      * otherwise returns an empty {@link List}
      */
     public static List<String> extractUrls(String response) {
-        var pattern = Pattern.compile("<a href=\"(.*?)\">.*?</a>", Pattern.MULTILINE);
+        var pattern = Pattern.compile("<.*?(?:href|src)=\"(.*?)\">?.*?(?:</a>|>)", Pattern.MULTILINE);
         var matcher = pattern.matcher(response);
         List<String> urls = new ArrayList<>();
         matcher.results().forEach(r -> urls.add(r.group(1)));
@@ -59,6 +59,21 @@ public class StringUtil {
     /**
      * @param response the whole http response string from a server
      *
+     * @return the {@code Location} of this html page if present, otherwise
+     * returns {@code null}
+     */
+    public static String extractLocation(String response) {
+        var pattern = Pattern.compile("Location: (.+)");
+        var matcher = pattern.matcher(response);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return null;
+    }
+
+    /**
+     * @param response the whole http response string from a server
+     *
      * @return the {@code Content-Length} of this html page if present,
      * otherwise returns {@code null}
      */
@@ -71,28 +86,8 @@ public class StringUtil {
         return null;
     }
 
-    /**
-     * @param response the whole http response string from a server
-     *
-     * @return a {@link List} of the non-html objects in this html page if
-     * present, otherwise returns an empty {@link List}
-     */
-    public static List<String> extractNonHtmlUrls(String response) {
-        var pattern = Pattern.compile("<.*?src=\"(.*?)\" .*?>", Pattern.MULTILINE);
-        var matcher = pattern.matcher(response);
-        List<String> images = new ArrayList<>();
-        matcher.results().forEach(img -> images.add(img.group(1)));
-        return images;
-    }
-
-    /**
-     * @param response the whole http response string from a server
-     *
-     * @return the {@code Location} of this html page if present, otherwise
-     * returns {@code null}
-     */
-    public static String extractLocation(String response) {
-        var pattern = Pattern.compile("Location: (.+)");
+    public static String extractContentType(String response) {
+        var pattern = Pattern.compile("Content-Type: (.+)");
         var matcher = pattern.matcher(response);
         if (matcher.find()) {
             return matcher.group(1);

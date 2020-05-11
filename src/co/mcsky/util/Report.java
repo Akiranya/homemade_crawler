@@ -1,6 +1,7 @@
 package co.mcsky.util;
 
-import co.mcsky.struct.SimpleHTML;
+import co.mcsky.struct.ContentType;
+import co.mcsky.struct.SimpleHttpResponse;
 import co.mcsky.struct.SimpleURL;
 import co.mcsky.struct.StatusCode;
 
@@ -21,7 +22,7 @@ public class Report {
      * @param crawled a {@link Set} of crawled html pages represented by {@link
      *                SimpleURL}
      */
-    public Report(SimpleURL site, Set<SimpleHTML> crawled) {
+    public Report(SimpleURL site, Set<SimpleHttpResponse> crawled) {
         this.site = site;
 
         /*
@@ -29,7 +30,6 @@ public class Report {
          * Print the total number of distinct URLs found on the site (including any errors and redirects)
          * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
          * */
-        // TODO 图片的 URLs 也要数进来
         out.printf("Total no of distinct URLs: %s%n", crawled.size());
 
         /*
@@ -40,12 +40,13 @@ public class Report {
         out.printf("The number of html pages on the site: %s%n",
                    crawled.stream()
                           .filter(u -> u.getStatusCode().isPresent() && u.getStatusCode().get() == StatusCode.OK)
+                          .filter(u -> u.getContentType() == ContentType.TEXT)
                           .count());
-        // TODO 不能只数 <img> tag 的数量，应该要检测是否真的存在图片（文件）
         out.printf("The number of non-html objects on the site: %s%n",
                    crawled.stream()
-                          .mapToInt(u -> u.getInnerImageUrls().size())
-                          .sum());
+                          .filter(u -> u.getStatusCode().isPresent() && u.getStatusCode().get() == StatusCode.OK)
+                          .filter(u -> u.getContentType() != ContentType.TEXT)
+                          .count());
 
         /*
          * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -54,14 +55,14 @@ public class Report {
          * */
         crawled.stream()
                .filter(u -> u.getContentLength().isPresent() && u.getStatusCode().isPresent() &&
-                            u.getStatusCode().get().status20x())
+                            u.getStatusCode().get().status20x() && u.getContentType() == ContentType.TEXT)
                .min(Comparator.comparingInt(u -> u.getContentLength().get()))
                .ifPresent(u -> out.printf("Smallest html page: %s (%s bytes)%n",
                                           u.getURL().toString(),
                                           u.getContentLength().orElse(-1)));
         crawled.stream()
-               .filter(u -> u.getStatusCode().isPresent() && u.getContentLength().isPresent() &&
-                            u.getStatusCode().get().status20x())
+               .filter(u -> u.getContentLength().isPresent() && u.getStatusCode().isPresent() &&
+                            u.getStatusCode().get().status20x() && u.getContentType() == ContentType.TEXT)
                .max(Comparator.comparingInt(u -> u.getContentLength().get()))
                .ifPresent(u -> out.printf("Largest html page: %s (%s bytes)%n",
                                           u.getURL().toString(),

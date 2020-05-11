@@ -1,6 +1,6 @@
 package co.mcsky;
 
-import co.mcsky.struct.SimpleHTML;
+import co.mcsky.struct.SimpleHttpResponse;
 import co.mcsky.struct.SimpleURL;
 import co.mcsky.util.Report;
 import co.mcsky.util.SimpleCrawler;
@@ -38,15 +38,15 @@ public class Crawler {
 
         // Start BFS
         var rootHTML = crawler.request(site);
-        var que = new LinkedList<SimpleHTML>();
+        var que = new LinkedList<SimpleHttpResponse>();
         var crawled = new HashSet<SimpleURL>();
-        var crawledAll = new HashSet<SimpleHTML>(); // Store all what we crawl
+        var crawledAll = new HashSet<SimpleHttpResponse>(); // Store all what we crawl
         crawled.add(rootHTML.getURL());
         que.add(rootHTML);
         while (!que.isEmpty()) {
             var html = que.remove();
             crawledAll.add(html); // Store all html pages for later analysis (the report)
-            var innerUrls = html.getInnerHtmlUrls();
+            var innerUrls = html.getInnerUrls();
             for (SimpleURL url : innerUrls) {
                 if (!crawled.contains(url)) {
                     crawled.add(url);

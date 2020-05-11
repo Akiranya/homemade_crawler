@@ -28,51 +28,55 @@ import static java.util.Optional.ofNullable;
  * about its internal html page. Typically, these getter methods are there for
  * generating a good report for the assignment.
  */
-public class SimpleHTML {
+public class SimpleHttpResponse {
 
     private static final String NULL_RESPONSE = "";
     private final SimpleURL url;
-    private final String response;
-    private final List<SimpleURL> innerHtmlUrls;
-    private final List<SimpleURL> InnerImageUrls;
+    private final boolean alive;
     private final int contentLength;
+    private final ContentType contentType;
     private final StatusCode statusCode;
     private final LocalDateTime modifiedTime;
+    private final List<SimpleURL> innerUrls;
     private final SimpleURL location;
-    private final boolean alive;
 
     /**
      * Creates a HTML object. If the URL cannot establish a connection, then
      * {@code null} should pass into {@code response} and {@code false} should
      * pass into {@code alive}.
      *
-     * @param url      standard URL
-     * @param response string representation of the http response from the
-     *                 server if present, otherwise {@code null} must pass into
-     *                 the constructor to indicate that the web server where the
-     *                 URL resides is not available
-     * @param alive    whether the web server whether the URL resides is alive
-     *                 or not
+     * @param url     standard URL
+     * @param message string representation of the http response from the server
+     *                if present, otherwise {@code null} must pass into the
+     *                constructor to indicate that the web server where the URL
+     *                resides is not available
+     * @param alive   whether the web server whether the URL resides is alive or
+     *                not
      */
-    public SimpleHTML(SimpleURL url, String response, boolean alive) {
+    public SimpleHttpResponse(SimpleURL url, String message, boolean alive) {
         this.url = Objects.requireNonNull(url, "URL cannot be null");
-        this.response = Objects.requireNonNullElse(response, NULL_RESPONSE);
-        this.alive = alive;
-        this.statusCode = ofNullable(StringUtil.extractStatusCode(this.response))
+        var response = Objects.requireNonNullElse(message, NULL_RESPONSE);
+        this.contentLength = ofNullable(StringUtil.extractContentLength(response))
+                .flatMap(s -> of(parseInt(s)))
+                .orElse(-1);
+        this.contentType = ofNullable(StringUtil.extractContentType(response))
+                .flatMap(s -> {
+                    if (s.contains("text")) {
+                        return of(ContentType.TEXT);
+                    } else if (s.contains("image")) {
+                        return of(ContentType.IMAGE);
+                    }
+                    return Optional.empty();
+                })
+                .orElse(null);
+        this.statusCode = ofNullable(StringUtil.extractStatusCode(response))
                 .flatMap(s -> of(parseInt(s)))
                 .flatMap(s -> of(StatusCode.matchCode(s)))
                 .orElse(null);
-        this.modifiedTime = ofNullable(StringUtil.extractModifiedTime(this.response))
+        this.modifiedTime = ofNullable(StringUtil.extractModifiedTime(response))
                 .flatMap(timeString -> of(LocalDateTime.parse(timeString, DateTimeFormatter.RFC_1123_DATE_TIME)))
                 .orElse(null);
-        /*
-         * Content-Length is the size of this html page (confirmed by Markus)
-         * See: https://wattlecourses.anu.edu.au/mod/forum/discuss.php?d=605237
-         * */
-        this.contentLength = ofNullable(StringUtil.extractContentLength(this.response))
-                .flatMap(s -> of(parseInt(s)))
-                .orElse(-1);
-        this.location = ofNullable(StringUtil.extractLocation(this.response))
+        this.location = ofNullable(StringUtil.extractLocation(response))
                 .flatMap(u -> {
                 /*
                     The literal URL in the field of Location may not have the same port
@@ -100,22 +104,11 @@ public class SimpleHTML {
                     return of(new SimpleURL(realTo));
                 })
                 .orElse(null);
-        this.innerHtmlUrls = StringUtil.extractUrls(this.response)
-                                       .stream()
-                                       .map(this::encodeURL) // Always store URLs in full format for the purpose of comparing!
-                                       .collect(Collectors.toList());
-        this.InnerImageUrls = StringUtil.extractNonHtmlUrls(this.response)
-                                        .stream()
-                                        .map(this::encodeURL)
-                                        .collect(Collectors.toList());
-    }
-
-    /**
-     * @return the raw http responses from the server (say, the string starting
-     * with "HTTP/1.1 200 OK ..."
-     */
-    public String getResponse() {
-        return response;
+        this.innerUrls = StringUtil.extractUrls(response)
+                                   .stream()
+                                   .map(this::encodeURL) // Always store URLs in full format for the purpose of comparing!
+                                   .collect(Collectors.toList());
+        this.alive = alive;
     }
 
     /**
@@ -129,16 +122,8 @@ public class SimpleHTML {
      * @return a {@link List} of http URLs inside this html page if present,
      * otherwise returns empty {@link List}
      */
-    public List<SimpleURL> getInnerHtmlUrls() {
-        return innerHtmlUrls;
-    }
-
-    /**
-     * @return a {@link List} of non-html objects inside this html page if
-     * present, otherwise returns empty {@link List}
-     */
-    public List<SimpleURL> getInnerImageUrls() {
-        return InnerImageUrls;
+    public List<SimpleURL> getInnerUrls() {
+        return innerUrls;
     }
 
     /**
@@ -158,10 +143,17 @@ public class SimpleHTML {
     }
 
     /**
-     * @return this {@code Content-Length} of this html page
+     * @return the {@code Content-Length} of this html page
      */
     public Optional<Integer> getContentLength() {
         return of(contentLength);
+    }
+
+    /**
+     * @return the {@code Content-Type} of this html page
+     */
+    public ContentType getContentType() {
+        return contentType;
     }
 
     /**
@@ -183,7 +175,7 @@ public class SimpleHTML {
         if (obj == null) {
             return false;
         }
-        if (!(obj instanceof SimpleHTML)) {
+        if (!(obj instanceof SimpleHttpResponse)) {
             return false;
         }
         return obj.hashCode() == this.hashCode();
