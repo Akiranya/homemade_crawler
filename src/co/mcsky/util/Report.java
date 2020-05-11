@@ -44,7 +44,7 @@ public class Report {
         // TODO 不能只数 <img> tag 的数量，应该要检测是否真的存在图片（文件）
         out.printf("The number of non-html objects on the site: %s%n",
                    crawled.stream()
-                          .mapToInt(u -> u.getNonHTMLObjects().size())
+                          .mapToInt(u -> u.getInnerImageUrls().size())
                           .sum());
 
         /*
@@ -64,8 +64,8 @@ public class Report {
                             u.getStatusCode().get().status20x())
                .max(Comparator.comparingInt(u -> u.getContentLength().get()))
                .ifPresent(u -> out.printf("Largest html page: %s (%s bytes)%n",
-                                             u.getURL().toString(),
-                                             u.getContentLength().orElse(-1)));
+                                          u.getURL().toString(),
+                                          u.getContentLength().orElse(-1)));
 
         /*
          * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -79,16 +79,16 @@ public class Report {
                .min(Comparator.comparing(u -> u.getModifiedTime().get()))
                .filter(u -> u.getModifiedTime().isPresent())
                .ifPresent(u -> out.printf("Oldest modified page: %s (Date: %s)%n",
-                                             u.getURL().toString(),
-                                             u.getModifiedTime().get()));
+                                          u.getURL().toString(),
+                                          u.getModifiedTime().get()));
         crawled.stream()
                // Same as above
                .filter(u -> u.getModifiedTime().isPresent())
                .max(Comparator.comparing(u -> u.getModifiedTime().get()))
                .filter(u -> u.getModifiedTime().isPresent())
                .ifPresent(u -> out.printf("Most-recently modified page: %s (Date: %s)%n",
-                                             u.getURL().toString(),
-                                             u.getModifiedTime().get()));
+                                          u.getURL().toString(),
+                                          u.getModifiedTime().get()));
 
         /*
          * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -100,8 +100,8 @@ public class Report {
         crawled.stream()
                .filter(u -> u.getStatusCode().isPresent() && u.getStatusCode().get().status40x())
                .forEach(u -> out.printf(" - %s (Reason: %s)%n",
-                                           u.getURL().toString(),
-                                           u.getStatusCode().get().toString()));
+                                        u.getURL().toString(),
+                                        u.getStatusCode().get().toString()));
 
         /*
          * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@

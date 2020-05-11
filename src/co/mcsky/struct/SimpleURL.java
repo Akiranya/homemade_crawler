@@ -11,7 +11,7 @@ import static java.util.Optional.ofNullable;
  */
 public class SimpleURL {
 
-    private final String URL;
+    private final String url;
     private final String host;
     private final int port;
     private final String protocol;
@@ -47,7 +47,7 @@ public class SimpleURL {
          * Say, "http://eee.com" without slash (i.e. absolute path) at the end
          * is effectively identical to "http://eee.com/" with slash at the end.
          * */
-        this.URL = protocol + "://" + host + ":" + port + path +
+        this.url = protocol + "://" + host + ":" + port + path +
                    (query.equals("") ? "" : "?=" + query) +
                    (fragment.equals("") ? "" : "#" + fragment);
     }
@@ -122,7 +122,7 @@ public class SimpleURL {
 
     @Override
     public String toString() {
-        return URL;
+        return url;
     }
 
     @Override
@@ -143,7 +143,7 @@ public class SimpleURL {
      */
     @Override
     public int hashCode() {
-        return this.URL.hashCode();
+        return this.url.hashCode();
     }
 
 }

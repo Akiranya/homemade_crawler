@@ -33,11 +33,11 @@ public class SimpleHTML {
     private static final String NULL_RESPONSE = "";
     private final SimpleURL url;
     private final String response;
-    private final List<SimpleURL> innerURLs;
+    private final List<SimpleURL> innerHtmlUrls;
+    private final List<SimpleURL> InnerImageUrls;
     private final int contentLength;
     private final StatusCode statusCode;
     private final LocalDateTime modifiedTime;
-    private final List<String> images;
     private final SimpleURL location;
     private final boolean alive;
 
@@ -72,7 +72,6 @@ public class SimpleHTML {
         this.contentLength = ofNullable(StringUtil.extractContentLength(this.response))
                 .flatMap(s -> of(parseInt(s)))
                 .orElse(-1);
-        this.images = StringUtil.extractNonHTMLObjects(this.response);
         this.location = ofNullable(StringUtil.extractLocation(this.response))
                 .flatMap(u -> {
                 /*
@@ -101,31 +100,14 @@ public class SimpleHTML {
                     return of(new SimpleURL(realTo));
                 })
                 .orElse(null);
-        /*
-            Notes: some exceptional URL
-                http://comp3310.ddns.net:7880/B/25.html (contains images)
-                http://comp3310.ddns.net:7880/C/307.html (contains 404)
-                http://www.canberratimes.com.au/ (off-site url)
-                http://comp3310.ddns.net:7880/B/23.html (contains canberra times)
-        */
-        /*
-         * Always store URLs in full format for the purpose of comparing!
-         * */
-        this.innerURLs = StringUtil.extractURL(this.response)
-                                   .stream()
-                                   .map(rawURL -> {
-                                      if (rawURL.startsWith("http://") || rawURL.startsWith("https://")) {
-                                          return new SimpleURL(rawURL);
-                                      } else {
-                                          var base = url.getProtocol() + "://" + url.getHost() + ":" + url.getPort();
-                                          if (rawURL.startsWith("/")) {
-                                              return new SimpleURL(base + rawURL);
-                                          } else {
-                                              return new SimpleURL(base + url.getDirectory() + rawURL);
-                                          }
-                                      }
-                                  })
-                                   .collect(Collectors.toList());
+        this.innerHtmlUrls = StringUtil.extractUrls(this.response)
+                                       .stream()
+                                       .map(this::encodeURL) // Always store URLs in full format for the purpose of comparing!
+                                       .collect(Collectors.toList());
+        this.InnerImageUrls = StringUtil.extractNonHtmlUrls(this.response)
+                                        .stream()
+                                        .map(this::encodeURL)
+                                        .collect(Collectors.toList());
     }
 
     /**
@@ -144,19 +126,19 @@ public class SimpleHTML {
     }
 
     /**
-     * @return a {@link List} of URLs inside this html page if present,
+     * @return a {@link List} of http URLs inside this html page if present,
      * otherwise returns empty {@link List}
      */
-    public List<SimpleURL> getInnerURLs() {
-        return innerURLs;
+    public List<SimpleURL> getInnerHtmlUrls() {
+        return innerHtmlUrls;
     }
 
     /**
      * @return a {@link List} of non-html objects inside this html page if
      * present, otherwise returns empty {@link List}
      */
-    public List<String> getNonHTMLObjects() {
-        return images;
+    public List<SimpleURL> getInnerImageUrls() {
+        return InnerImageUrls;
     }
 
     /**
@@ -217,6 +199,24 @@ public class SimpleHTML {
     @Override
     public int hashCode() {
         return this.url.toString().hashCode();
+    }
+
+    /**
+     * Encodes a URL into full format as much as possible.
+     *
+     * @return full format of this URL
+     */
+    private SimpleURL encodeURL(String spec) {
+        if (spec.startsWith("http://") || spec.startsWith("https://")) {
+            return new SimpleURL(spec);
+        } else {
+            var base = url.getProtocol() + "://" + url.getHost() + ":" + url.getPort();
+            if (spec.startsWith("/")) {
+                return new SimpleURL(base + spec);
+            } else {
+                return new SimpleURL(base + url.getDirectory() + spec);
+            }
+        }
     }
 
 }

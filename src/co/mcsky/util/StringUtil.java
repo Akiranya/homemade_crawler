@@ -18,7 +18,7 @@ public class StringUtil {
      * @return a {@link List} of all the URLs in this html page if there is any,
      * otherwise returns an empty {@link List}
      */
-    public static List<String> extractURL(String response) {
+    public static List<String> extractUrls(String response) {
         var pattern = Pattern.compile("<a href=\"(.*?)\">.*?</a>", Pattern.MULTILINE);
         var matcher = pattern.matcher(response);
         List<String> urls = new ArrayList<>();
@@ -77,9 +77,8 @@ public class StringUtil {
      * @return a {@link List} of the non-html objects in this html page if
      * present, otherwise returns an empty {@link List}
      */
-    public static List<String> extractNonHTMLObjects(String response) {
-        // For now it just finds all <img> tags on a html page
-        var pattern = Pattern.compile("<img src=\"(.*)\" .*?>", Pattern.MULTILINE);
+    public static List<String> extractNonHtmlUrls(String response) {
+        var pattern = Pattern.compile("<.*?src=\"(.*?)\" .*?>", Pattern.MULTILINE);
         var matcher = pattern.matcher(response);
         List<String> images = new ArrayList<>();
         matcher.results().forEach(img -> images.add(img.group(1)));
