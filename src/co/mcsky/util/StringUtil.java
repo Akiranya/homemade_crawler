@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 /**
- * This class simply extracts strings with certain pattern from a HTML page.
+ * This class simply extracts strings with certain pattern from a http response.
  * Methods of this class either return {@link String}, {@link List<String>}, or
  * just {@link null} if necessary. Further processing of the extracted strings
  * should be done in other classes to keep code organized.
@@ -29,8 +29,8 @@ public class StringUtil {
     /**
      * @param response the whole http response string from a server
      *
-     * @return the {@code Modified-Time} of this html page if present, otherwise
-     * returns {@code null}
+     * @return the {@code Modified-Time} of the resource of this http response
+     * if present, otherwise returns {@code null}
      */
     public static String extractModifiedTime(String response) {
         var pattern = Pattern.compile("Last-Modified: (.+)");
@@ -44,8 +44,8 @@ public class StringUtil {
     /**
      * @param response the whole http response string from a server
      *
-     * @return the status code of this html page if present, otherwise returns
-     * {@code null}
+     * @return the status code of this http response if present, otherwise
+     * returns {@code null}
      */
     public static String extractStatusCode(String response) {
         var pattern = Pattern.compile("HTTP/\\d\\.\\d (\\d{3}) ");
@@ -59,7 +59,7 @@ public class StringUtil {
     /**
      * @param response the whole http response string from a server
      *
-     * @return the {@code Location} of this html page if present, otherwise
+     * @return the {@code Location} of this http response if present, otherwise
      * returns {@code null}
      */
     public static String extractLocation(String response) {
@@ -74,7 +74,7 @@ public class StringUtil {
     /**
      * @param response the whole http response string from a server
      *
-     * @return the {@code Content-Length} of this html page if present,
+     * @return the {@code Content-Length} of this http response if present,
      * otherwise returns {@code null}
      */
     public static String extractContentLength(String response) {

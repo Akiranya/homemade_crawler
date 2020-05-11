@@ -14,18 +14,17 @@ import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 
 /**
- * This class represents a html page and a related instance of {@link
- * SimpleURL}. This html page may or may not exist, depending on whether {@link
- * SimpleURL#toString()} points to a valid html page or not, at the
- * instantiation of this class.
+ * This class represents a http response. The response may or may not exist,
+ * depending on whether the {@link SimpleURL} points to a valid http server or
+ * not, at the instantiation of this class.
  *
- * <p>In other words, this class at least contains a instance of {@link
- * SimpleURL}. If the {@link SimpleURL} is a valid URL (say, we can obtain a
- * HTML page from it, including 40x and 50x) then this class will contain
- * relevant information about this html page.
+ * <p>In other words, this class at least contains a URL (i.e. {@link
+ * SimpleURL}). If the URL is valid (say, we can obtain a file from it,
+ * including 30x, 40x and 50x) then this class will contain relevant information
+ * about the http response.
  *
  * <p>This class provides convenient methods for getting relevant information
- * about its internal html page. Typically, these getter methods are there for
+ * about its internal responses. Typically, these getter methods are ad-hoc for
  * generating a good report for the assignment.
  */
 public class SimpleHttpResponse {
@@ -134,37 +133,37 @@ public class SimpleHttpResponse {
     }
 
     /**
-     * @return the {@code Status Code} of this html page when it is obtained in
-     * the first place. That is, for example, if this html page is 30x, then we
-     * keep the 30x page instead of the page which it redirects to
+     * @return the {@code Status Code} of this http response when it is obtained
+     * in the first place. That is, for example, if this http response is 30x, then
+     * we keep the 30x page instead of the page which it redirects to
      */
     public Optional<StatusCode> getStatusCode() {
         return ofNullable(statusCode);
     }
 
     /**
-     * @return the {@code Content-Length} of this html page
+     * @return the {@code Content-Length} of this http response
      */
     public Optional<Integer> getContentLength() {
         return of(contentLength);
     }
 
     /**
-     * @return the {@code Content-Type} of this html page
+     * @return the {@code Content-Type} of this http response
      */
     public ContentType getContentType() {
         return contentType;
     }
 
     /**
-     * @return the {@code Location} (the URL it redirect to) of this html page
+     * @return the {@code Location} (the URL it redirect to) of this response
      */
     public Optional<SimpleURL> getRedirectTo() {
         return ofNullable(location);
     }
 
     /**
-     * @return true if this URL has a valid web server, false else wise
+     * @return true if this URL points to a valid web server, false else wise
      */
     public boolean isAlive() {
         return alive;
@@ -186,7 +185,7 @@ public class SimpleHttpResponse {
      * should be enough to handle the situation in the assessment server of the
      * assignment.
      *
-     * @return a hashCode of this html page
+     * @return a hashCode of this http response
      */
     @Override
     public int hashCode() {

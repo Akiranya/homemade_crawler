@@ -19,8 +19,8 @@ public class Report {
 
     /**
      * @param site    the website to crawl
-     * @param crawled a {@link Set} of crawled html pages represented by {@link
-     *                SimpleURL}
+     * @param crawled a {@link Set} of crawled http responses represented by
+     *                {@link SimpleHttpResponse}
      */
     public Report(SimpleURL site, Set<SimpleHttpResponse> crawled) {
         this.site = site;

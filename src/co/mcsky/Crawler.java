@@ -45,7 +45,7 @@ public class Crawler {
         que.add(rootHTML);
         while (!que.isEmpty()) {
             var html = que.remove();
-            crawledAll.add(html); // Store all html pages for later analysis (the report)
+            crawledAll.add(html); // Store all http responses for later analysis (the report)
             var innerUrls = html.getInnerUrls();
             for (SimpleURL url : innerUrls) {
                 if (!crawled.contains(url)) {
