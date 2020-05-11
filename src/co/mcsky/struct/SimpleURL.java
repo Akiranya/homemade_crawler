@@ -7,8 +7,7 @@ import static java.lang.Integer.parseInt;
 import static java.util.Optional.ofNullable;
 
 /**
- * Represents a {@code URL}. See <a href="https://www.rfc-editor.org/rfc/rfc1945.html#section-3.2.2">RFC1945
- * 3.2.2</a>.
+ * Represents a {@code URL} of http scheme.
  */
 public class SimpleURL {
 
@@ -23,7 +22,7 @@ public class SimpleURL {
     private final String fragment;
 
     /**
-     * Creates a HTTP URL from string representation.
+     * Creates a http URL from string representation.
      */
     public SimpleURL(String spec) {
         // Debugger for this regex: https://regex101.com/r/Zx74z0/16
@@ -31,9 +30,9 @@ public class SimpleURL {
         var pattern = Pattern.compile(regex);
         var matcher = pattern.matcher(spec);
         if (!matcher.find()) {
-            throw new IllegalArgumentException("Cannot recognize HTTP URL: " + spec);
+            throw new IllegalArgumentException("Cannot recognize http URL: " + spec);
         }
-        this.protocol = ofNullable(matcher.group(1)).orElseThrow(() -> new NoSuchElementException("Only accepts HTTP scheme"));
+        this.protocol = ofNullable(matcher.group(1)).orElseThrow(() -> new NoSuchElementException("Only accepts http scheme"));
         this.host = ofNullable(matcher.group(2)).orElseThrow(() -> new NoSuchElementException("Host cannot be empty."));
         this.port = parseInt(ofNullable(matcher.group(3)).orElse("80"));
         this.path = ofNullable(matcher.group(4)).orElse("/");
