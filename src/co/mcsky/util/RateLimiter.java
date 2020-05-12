@@ -23,8 +23,8 @@ public class RateLimiter {
      * per {@code interval} milliseconds specified in this constructor. If the
      * thread invokes this method under the specified interval (say, the thread
      * is calling this method too frequent), then the thread will sleep for a
-     * particular length of time so that it effectively runs at most once per
-     * {@code interval}.
+     * particular length of time so that it can "slow down" and effectively runs
+     * at most once per {@code interval}.
      */
     public void await() {
         if (check()) {
