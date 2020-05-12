@@ -31,6 +31,7 @@ public class SimpleHttpResponse {
 
     private static final String NULL_RESPONSE = "";
     private final SimpleURL url;
+    private final String response;
     private final boolean alive;
     private final int contentLength;
     private final ContentType contentType;
@@ -54,21 +55,21 @@ public class SimpleHttpResponse {
      */
     public SimpleHttpResponse(SimpleURL url, String message, boolean alive) {
         this.url = Objects.requireNonNull(url, "URL cannot be null");
-        var response = Objects.requireNonNullElse(message, NULL_RESPONSE);
-        this.contentLength = StringUtil.extractContentLength(response)
+        this.response = Objects.requireNonNullElse(message, NULL_RESPONSE);
+        this.contentLength = StringUtil.extractContentLength(this.response)
                                        .flatMap(s -> of(parseInt(s)))
                                        .orElse(-1);
-        this.contentType = StringUtil.extractContentType(response)
+        this.contentType = StringUtil.extractContentType(this.response)
                                      .flatMap(s -> ofNullable(ContentType.matchType(s)))
                                      .orElse(null);
-        this.statusCode = StringUtil.extractStatusCode(response)
+        this.statusCode = StringUtil.extractStatusCode(this.response)
                                     .flatMap(s -> of(parseInt(s)))
                                     .flatMap(s -> of(StatusCode.matchCode(s)))
                                     .orElse(null);
-        this.modifiedTime = StringUtil.extractModifiedTime(response)
+        this.modifiedTime = StringUtil.extractModifiedTime(this.response)
                                       .flatMap(timeString -> of(LocalDateTime.parse(timeString, DateTimeFormatter.RFC_1123_DATE_TIME)))
                                       .orElse(null);
-        this.location = StringUtil.extractLocation(response)
+        this.location = StringUtil.extractLocation(this.response)
                                   .flatMap(u -> {
                 /*
                     The literal URL in the field of Location may not have the same port
@@ -96,7 +97,7 @@ public class SimpleHttpResponse {
                                       return of(new SimpleURL(realTo));
                                   })
                                   .orElse(null);
-        this.innerUrls = StringUtil.extractUrls(response)
+        this.innerUrls = StringUtil.extractUrls(this.response)
                                    .stream()
                                    .map(this::encodeURL) // Always store URLs in full format for the purpose of comparing!
                                    .collect(Collectors.toList());
@@ -104,7 +105,14 @@ public class SimpleHttpResponse {
     }
 
     /**
-     * @return the URL pointing to this page
+     * @return the string representation of this http response
+     */
+    public String getResponse() {
+        return response;
+    }
+
+    /**
+     * @return the URL pointing to this response
      */
     public SimpleURL getURL() {
         return url;
