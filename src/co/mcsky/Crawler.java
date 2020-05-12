@@ -2,7 +2,7 @@ package co.mcsky;
 
 import co.mcsky.struct.SimpleHttpResponse;
 import co.mcsky.struct.SimpleURL;
-import co.mcsky.util.Report;
+import co.mcsky.util.ReportAss2;
 import co.mcsky.util.SimpleCrawler;
 
 import java.util.HashSet;
@@ -76,7 +76,7 @@ public class Crawler {
 
         System.out.println("* Crawling has completed...");
         System.out.println("* Generating report...");
-        new Report(site, crawledResponse);
+        new ReportAss2(site, crawledResponse);
     }
 
 }

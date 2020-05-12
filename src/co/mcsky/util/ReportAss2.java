@@ -13,7 +13,7 @@ import static java.lang.System.out;
 /**
  * Generating the report that conforms the assignment.
  */
-public class Report {
+public class ReportAss2 {
 
     private final SimpleURL site;
 
@@ -22,7 +22,7 @@ public class Report {
      * @param crawled a {@link Set} of crawled http responses represented by
      *                {@link SimpleHttpResponse}
      */
-    public Report(SimpleURL site, Set<SimpleHttpResponse> crawled) {
+    public ReportAss2(SimpleURL site, Set<SimpleHttpResponse> crawled) {
         this.site = site;
 
         /*

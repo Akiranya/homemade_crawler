@@ -2,7 +2,7 @@
   <configuration default="false" name="Crawler" type="Application" factoryName="Application" nameIsGenerated="true">
     <option name="MAIN_CLASS_NAME" value="co.mcsky.Crawler" />
     <module name="crawler" />
-    <option name="PROGRAM_PARAMETERS" value="comp3310.ddns.net 7880 1" />
+    <option name="PROGRAM_PARAMETERS" value="comp3310.ddns.net 7880 0" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="co.mcsky.util.*" />
