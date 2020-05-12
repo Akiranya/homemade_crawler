@@ -40,43 +40,36 @@ public class SimpleHttpResponse {
     private final SimpleURL location;
 
     /**
-     * Creates a HTML object. If the URL cannot establish a connection, then
-     * {@code null} should pass into {@code response} and {@code false} should
-     * pass into {@code alive}.
+     * Creates a http response object. If the URL cannot establish a connection,
+     * then {@code null} should pass into {@code response} and {@code false}
+     * should pass into {@code alive}.
      *
      * @param url     standard URL
      * @param message string representation of the http response from the server
      *                if present, otherwise {@code null} must pass into the
      *                constructor to indicate that the web server where the URL
      *                resides is not available
-     * @param alive   whether the web server whether the URL resides is alive or
+     * @param alive   whether the web server where the URL resides is alive or
      *                not
      */
     public SimpleHttpResponse(SimpleURL url, String message, boolean alive) {
         this.url = Objects.requireNonNull(url, "URL cannot be null");
         var response = Objects.requireNonNullElse(message, NULL_RESPONSE);
-        this.contentLength = ofNullable(StringUtil.extractContentLength(response))
-                .flatMap(s -> of(parseInt(s)))
-                .orElse(-1);
-        this.contentType = ofNullable(StringUtil.extractContentType(response))
-                .flatMap(s -> {
-                    if (s.contains("text")) {
-                        return of(ContentType.TEXT);
-                    } else if (s.contains("image")) {
-                        return of(ContentType.IMAGE);
-                    }
-                    return Optional.empty();
-                })
-                .orElse(null);
-        this.statusCode = ofNullable(StringUtil.extractStatusCode(response))
-                .flatMap(s -> of(parseInt(s)))
-                .flatMap(s -> of(StatusCode.matchCode(s)))
-                .orElse(null);
-        this.modifiedTime = ofNullable(StringUtil.extractModifiedTime(response))
-                .flatMap(timeString -> of(LocalDateTime.parse(timeString, DateTimeFormatter.RFC_1123_DATE_TIME)))
-                .orElse(null);
-        this.location = ofNullable(StringUtil.extractLocation(response))
-                .flatMap(u -> {
+        this.contentLength = StringUtil.extractContentLength(response)
+                                       .flatMap(s -> of(parseInt(s)))
+                                       .orElse(-1);
+        this.contentType = StringUtil.extractContentType(response)
+                                     .flatMap(s -> ofNullable(ContentType.matchType(s)))
+                                     .orElse(null);
+        this.statusCode = StringUtil.extractStatusCode(response)
+                                    .flatMap(s -> of(parseInt(s)))
+                                    .flatMap(s -> of(StatusCode.matchCode(s)))
+                                    .orElse(null);
+        this.modifiedTime = StringUtil.extractModifiedTime(response)
+                                      .flatMap(timeString -> of(LocalDateTime.parse(timeString, DateTimeFormatter.RFC_1123_DATE_TIME)))
+                                      .orElse(null);
+        this.location = StringUtil.extractLocation(response)
+                                  .flatMap(u -> {
                 /*
                     The literal URL in the field of Location may not have the same port
                     as its "parent" html page. In other words, non-standard ports are not
@@ -95,14 +88,14 @@ public class SimpleHttpResponse {
 
                     See: https://wattlecourses.anu.edu.au/mod/forum/discuss.php?d=603754
                 */
-                    var to = new SimpleURL(u);
-                    var realTo = to.getProtocol() + "://" +
-                                 to.getHost() + ":" +
-                                 this.url.getPort() + // We modify the port to its "parent's"
-                                 to.getPath();
-                    return of(new SimpleURL(realTo));
-                })
-                .orElse(null);
+                                      var to = new SimpleURL(u);
+                                      var realTo = to.getProtocol() + "://" +
+                                                   to.getHost() + ":" +
+                                                   this.url.getPort() + // We modify the port to its "parent's"
+                                                   to.getPath();
+                                      return of(new SimpleURL(realTo));
+                                  })
+                                  .orElse(null);
         this.innerUrls = StringUtil.extractUrls(response)
                                    .stream()
                                    .map(this::encodeURL) // Always store URLs in full format for the purpose of comparing!
@@ -134,8 +127,8 @@ public class SimpleHttpResponse {
 
     /**
      * @return the {@code Status Code} of this http response when it is obtained
-     * in the first place. That is, for example, if this http response is 30x, then
-     * we keep the 30x page instead of the page which it redirects to
+     * in the first place. That is, for example, if this http response is 30x,
+     * then we keep the 30x page instead of the page which it redirects to
      */
     public Optional<StatusCode> getStatusCode() {
         return ofNullable(statusCode);
@@ -151,8 +144,8 @@ public class SimpleHttpResponse {
     /**
      * @return the {@code Content-Type} of this http response
      */
-    public ContentType getContentType() {
-        return contentType;
+    public Optional<ContentType> getContentType() {
+        return ofNullable(contentType);
     }
 
     /**

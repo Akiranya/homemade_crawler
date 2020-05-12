@@ -47,7 +47,7 @@ public class SimpleCrawler {
              var in = new Scanner(new BufferedReader(new InputStreamReader(socket.getInputStream())))
         ) {
             if (!whitelist.contains(url.getHostPort())) {
-                System.err.println("Crawler - " + url.getHostPort() + " not in whitelist, skipped and returning empty response");
+                System.out.println("Crawler - " + url.getHostPort() + " not in whitelist, skipped and returning empty response");
                 return new SimpleHttpResponse(url, null, true);
             }
             throttler.await(); // Rate limiting should happen AFTER the whitelist checking to avoid unnecessary waiting
@@ -59,7 +59,7 @@ public class SimpleCrawler {
                                    .append(System.getProperty("line.separator"));
                 if (line.startsWith(CONTENT_TYPE_IMAGE)) {
                     in.close(); // Don't download the whole image files as we don't need... just get the headers
-                    System.err.println("Crawler - closed image download stream early for " + url);
+                    System.out.println("Crawler - closed image download stream early for " + url);
                     break;
                 }
             }

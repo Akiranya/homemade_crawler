@@ -53,6 +53,13 @@ public class SimpleURL {
     }
 
     /**
+     * @return the protocol of this URL
+     */
+    public String getProtocol() {
+        return protocol;
+    }
+
+    /**
      * @return the host of the URL
      */
     public String getHost() {
@@ -73,13 +80,6 @@ public class SimpleURL {
      */
     public String getHostPort() {
         return host + ":" + port;
-    }
-
-    /**
-     * @return the protocol of this URL
-     */
-    public String getProtocol() {
-        return protocol;
     }
 
     /**

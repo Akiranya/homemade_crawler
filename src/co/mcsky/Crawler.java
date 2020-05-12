@@ -8,14 +8,15 @@ import co.mcsky.util.SimpleCrawler;
 import java.util.HashSet;
 import java.util.LinkedList;
 
-import static java.lang.System.out;
-
 /**
  * A very primitive HTTP crawler.
  */
 public class Crawler {
 
     public static void main(String[] args) {
+        /*
+         * Just some CLI stuff to get input host and port from users...
+         * */
         if (args.length != 3) {
             System.err.println("Usage: java Crawler <host name> <port number> <interval>");
             System.exit(1);
@@ -26,30 +27,44 @@ public class Crawler {
         var site = new SimpleURL("http://" + host + ":" + port);
 
         /*
-            Breadth-first search the site.
-            Theoretically, it can crawl URLs of arbitrary depth on the site.
-        */
-
-        // Only the hosts in the whitelist will be crawled, otherwise skipping and reporting
+         * Now we initialize our crawler with a given rate limit (1 request per 2 seconds)
+         * and a whitelist which contains a list of sites which the crawler should crawl on.
+         * The crawler should be able to skip any sites that's not in the whitelist.
+         * */
         var whitelist = new HashSet<String>() {{
-            add(site.getHostPort());
+            add(site.getHostPort()); // Only the hosts in the whitelist will be crawled, otherwise skipping and reporting
         }};
         var crawler = new SimpleCrawler(interval * 1000L, whitelist);
 
-        // Start BFS
-        var rootHTML = crawler.request(site);
+        /*
+         * Since a site usually contains lots of URLs that locate in arbitrary depth,
+         * one way to model how the crawler searches for all the URLs is to think of
+         * the index of files on the site as a graph, where we can therefore apply
+         * graph search algorithms.
+         *
+         * Here is a Breadth-first search algorithm. Honestly, I choose BFS for no
+         * particular reason..., it is just easy to implement, and happens to work
+         * perfectly. I believe that other search algorithms could work as well.
+         *
+         * Theoretically, it can crawl URLs of arbitrary depth on a site.
+         * */
+        var initialResponse = crawler.request(site);
+        // The queue is necessary for BFS to work
         var que = new LinkedList<SimpleHttpResponse>();
-        var crawled = new HashSet<SimpleURL>();
-        var crawledAll = new HashSet<SimpleHttpResponse>(); // Store all what we crawl
-        crawled.add(rootHTML.getURL());
-        que.add(rootHTML);
+        // This set is used to mark what we have crawled (URL should be enough to tell distinct responses)
+        var crawledUrls = new HashSet<SimpleURL>();
+        // This set is where we store all responses we have crawled for later analysis (the report)
+        var crawledResponse = new HashSet<SimpleHttpResponse>();
+
+        crawledUrls.add(initialResponse.getURL()); // mark the initial response as crawled
+        que.add(initialResponse);
         while (!que.isEmpty()) {
-            var html = que.remove();
-            crawledAll.add(html); // Store all http responses for later analysis (the report)
-            var innerUrls = html.getInnerUrls();
-            for (SimpleURL url : innerUrls) {
-                if (!crawled.contains(url)) {
-                    crawled.add(url);
+            var currentResponse = que.remove();
+            crawledResponse.add(currentResponse);
+            var innerUrls = currentResponse.getInnerUrls(); // get all the inner URLs of this http response
+            for (SimpleURL url : innerUrls) { // and try to crawl all the inner URLs
+                if (!crawledUrls.contains(url)) {
+                    crawledUrls.add(url); // mark it as crawled
                     que.add(crawler.request(url));
                 }
             }
@@ -59,9 +74,9 @@ public class Crawler {
             Generating report
         */
 
-        out.println("* Crawling has completed...");
-        out.println("* Generating report...");
-        new Report(site, crawledAll);
+        System.out.println("* Crawling has completed...");
+        System.out.println("* Generating report...");
+        new Report(site, crawledResponse);
     }
 
 }

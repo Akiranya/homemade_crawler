@@ -40,12 +40,12 @@ public class Report {
         out.printf("The number of html pages on the site: %s%n",
                    crawled.stream()
                           .filter(u -> u.getStatusCode().isPresent() && u.getStatusCode().get() == StatusCode.OK)
-                          .filter(u -> u.getContentType() == ContentType.TEXT)
+                          .filter(u -> u.getContentType().isPresent() && u.getContentType().get() == ContentType.TEXT)
                           .count());
         out.printf("The number of non-html objects on the site: %s%n",
                    crawled.stream()
                           .filter(u -> u.getStatusCode().isPresent() && u.getStatusCode().get() == StatusCode.OK)
-                          .filter(u -> u.getContentType() != ContentType.TEXT)
+                          .filter(u -> u.getContentType().isPresent() && u.getContentType().get() != ContentType.TEXT)
                           .count());
 
         /*
@@ -54,15 +54,17 @@ public class Report {
          * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
          * */
         crawled.stream()
-               .filter(u -> u.getContentLength().isPresent() && u.getStatusCode().isPresent() &&
-                            u.getStatusCode().get().status20x() && u.getContentType() == ContentType.TEXT)
+               .filter(u -> u.getContentLength().isPresent() &&
+                            u.getStatusCode().isPresent() && u.getStatusCode().get().status20x() &&
+                            u.getContentType().isPresent() && u.getContentType().get() == ContentType.TEXT)
                .min(Comparator.comparingInt(u -> u.getContentLength().get()))
                .ifPresent(u -> out.printf("Smallest html page: %s (%s bytes)%n",
                                           u.getURL().toString(),
                                           u.getContentLength().orElse(-1)));
         crawled.stream()
-               .filter(u -> u.getContentLength().isPresent() && u.getStatusCode().isPresent() &&
-                            u.getStatusCode().get().status20x() && u.getContentType() == ContentType.TEXT)
+               .filter(u -> u.getContentLength().isPresent() &&
+                            u.getStatusCode().isPresent() && u.getStatusCode().get().status20x() &&
+                            u.getContentType().isPresent() && u.getContentType().get() == ContentType.TEXT)
                .max(Comparator.comparingInt(u -> u.getContentLength().get()))
                .ifPresent(u -> out.printf("Largest html page: %s (%s bytes)%n",
                                           u.getURL().toString(),
