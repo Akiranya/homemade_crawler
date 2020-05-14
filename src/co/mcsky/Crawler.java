@@ -48,15 +48,15 @@ public class Crawler {
          *
          * Theoretically, it can crawl URLs of arbitrary depth on a site.
          * */
-        var initialResponse = crawler.request(site);
-        // The queue is necessary for BFS to work
-        var que = new LinkedList<SimpleHttpResponse>();
         // This set is used to mark what we have crawled (URL should be enough to tell distinct responses)
         var crawledUrls = new HashSet<SimpleURL>();
         // This set is where we store all responses we have crawled for later analysis (the report)
         var crawledResponse = new HashSet<SimpleHttpResponse>();
+        // The queue is necessary for BFS to work
+        var que = new LinkedList<SimpleHttpResponse>();
 
-        crawledUrls.add(initialResponse.getURL()); // mark the initial response as crawled
+        var initialResponse = crawler.request(site);
+        crawledUrls.add(initialResponse.getHead().getURL()); // mark the initial response as crawled
         que.add(initialResponse);
         while (!que.isEmpty()) {
             var currentResponse = que.remove();

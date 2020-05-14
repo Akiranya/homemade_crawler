@@ -39,11 +39,13 @@ public class ReportAss2 {
          * */
         out.printf("The number of html pages on the site: %s%n",
                    crawled.stream()
+                          .map(SimpleHttpResponse::getHead)
                           .filter(u -> u.getStatusCode().isPresent() && u.getStatusCode().get() == StatusCode.OK)
                           .filter(u -> u.getContentType().isPresent() && u.getContentType().get() == ContentType.TEXT)
                           .count());
         out.printf("The number of non-html objects on the site: %s%n",
                    crawled.stream()
+                          .map(SimpleHttpResponse::getHead)
                           .filter(u -> u.getStatusCode().isPresent() && u.getStatusCode().get() == StatusCode.OK)
                           .filter(u -> u.getContentType().isPresent() && u.getContentType().get() != ContentType.TEXT)
                           .count());
@@ -54,6 +56,7 @@ public class ReportAss2 {
          * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
          * */
         crawled.stream()
+               .map(SimpleHttpResponse::getHead)
                .filter(u -> u.getContentLength().isPresent() &&
                             u.getStatusCode().isPresent() && u.getStatusCode().get().status20x() &&
                             u.getContentType().isPresent() && u.getContentType().get() == ContentType.TEXT)
@@ -62,6 +65,7 @@ public class ReportAss2 {
                                           u.getURL().toString(),
                                           u.getContentLength().orElse(-1)));
         crawled.stream()
+               .map(SimpleHttpResponse::getHead)
                .filter(u -> u.getContentLength().isPresent() &&
                             u.getStatusCode().isPresent() && u.getStatusCode().get().status20x() &&
                             u.getContentType().isPresent() && u.getContentType().get() == ContentType.TEXT)
@@ -78,6 +82,7 @@ public class ReportAss2 {
         crawled.stream()
                // 404 html pages have null modified time headers,
                // so we have to ignore them to avoid NPE.
+               .map(SimpleHttpResponse::getHead)
                .filter(u -> u.getModifiedTime().isPresent())
                .min(Comparator.comparing(u -> u.getModifiedTime().get()))
                .filter(u -> u.getModifiedTime().isPresent())
@@ -86,6 +91,7 @@ public class ReportAss2 {
                                           u.getModifiedTime().get()));
         crawled.stream()
                // Same as above
+               .map(SimpleHttpResponse::getHead)
                .filter(u -> u.getModifiedTime().isPresent())
                .max(Comparator.comparing(u -> u.getModifiedTime().get()))
                .filter(u -> u.getModifiedTime().isPresent())
@@ -101,6 +107,7 @@ public class ReportAss2 {
         // TODO To confirm: what status codes should be classified as valid URLs?
         out.println("A list of invalid URLs (not) found (404):");
         crawled.stream()
+               .map(SimpleHttpResponse::getHead)
                .filter(u -> u.getStatusCode().isPresent() && u.getStatusCode().get().status40x())
                .forEach(u -> out.printf(" - %s (Reason: %s)%n",
                                         u.getURL().toString(),
@@ -113,6 +120,7 @@ public class ReportAss2 {
          * */
         out.println("A list of on-site redirected URLs:");
         crawled.stream()
+               .map(SimpleHttpResponse::getHead)
                .filter(u -> u.getStatusCode().isPresent() && u.getStatusCode().get().status30x() &&
                             u.getRedirectTo().isPresent() && isOnSite(u.getRedirectTo().get()))
                .forEach(u -> out.printf(" - %s -> %s%n",
@@ -127,9 +135,9 @@ public class ReportAss2 {
          * */
         out.println("A list of off-site URLs found:");
         crawled.stream()
-               .filter(u -> !isOnSite(u.getURL()))
+               .filter(u -> !isOnSite(u.getHead().getURL()))
                .forEach(u -> out.printf(" - %s -> %s%n",
-                                        u.getURL().toString(),
+                                        u.getHead().getURL().toString(),
                                         u.isAlive()
                                         ? "web server available"
                                         : "web server unavailable"));

@@ -13,6 +13,9 @@ import java.time.LocalDateTime;
 import java.util.Scanner;
 import java.util.Set;
 
+/**
+ * A simple http crawler using just low-level sockets.
+ */
 public class SimpleCrawler {
 
     private static final String CONTENT_TYPE_IMAGE = "Content-Type: image";
@@ -40,40 +43,54 @@ public class SimpleCrawler {
     public SimpleHttpResponse request(SimpleURL url) {
         var httpResponse = new SimpleHttpResponse(url, null, false);
         var httpRequest = String.format("GET %s HTTP/1.0\r\n\r\n", url.getPath());
+
         var host = url.getHost();
         var port = url.getPort();
+
         try (var socket = new Socket(host, port);
              var out = new PrintWriter(socket.getOutputStream(), true);
              var in = new Scanner(new BufferedReader(new InputStreamReader(socket.getInputStream())))
         ) {
+            // Check whitelist. If the site is not in whitelist, then don't crawl and skip it
             if (!whitelist.contains(url.getHostPort())) {
                 System.out.println("Crawler - " + url.getHostPort() + " not in whitelist, skipped and returning empty response");
                 return new SimpleHttpResponse(url, null, true);
             }
-            throttler.await(); // Rate limiting should happen AFTER the whitelist checking to avoid unnecessary waiting
-            out.println(httpRequest); // Send GET request to the http server
-            var httpResponseBuilder = new StringBuilder();
+
+            // Rate limiting
+            throttler.await();
+
+            // Send GET request to the http server
+            out.println(httpRequest);
+
+            var sb = new StringBuilder();
+            var line = "";
             while (in.hasNextLine()) { // Read off response from the server
-                var line = in.nextLine();
-                httpResponseBuilder.append(line)
-                                   .append(System.getProperty("line.separator"));
+                line = in.nextLine();
+                sb.append(line)
+                  .append(System.getProperty("line.separator"));
                 if (line.startsWith(CONTENT_TYPE_IMAGE)) {
                     in.close(); // Don't download the whole image files as we don't need... just get the headers
                     System.out.println("Crawler - closed image download stream early for " + url);
                     break;
                 }
             }
-            httpResponse = new SimpleHttpResponse(url, httpResponseBuilder.toString(), true); // Store the response message
+
+            // Store the response message
+            httpResponse = new SimpleHttpResponse(url, sb.toString(), true);
         } catch (UnknownHostException e) {
             System.err.println("Crawler - Unknown host " + host + ", returning empty response");
         } catch (IOException e) {
             System.err.println("Crawler - Couldn't get I/O for the connection to " + host + ":" + port + ", returning empty response");
         }
+
+        // Verbose
         System.out.println("Crawler - Sec: " + LocalDateTime.now().getSecond());
         System.out.println("Crawler - URL: " + url.toString());
-        httpResponse.getStatusCode().ifPresent(code -> System.out.println("Crawler - Status code: " + code.toString()));
-        httpResponse.getModifiedTime().ifPresent(time -> System.out.println("Crawler - Modified time: " + time.toString()));
-        httpResponse.getRedirectTo().ifPresent(location -> System.out.println("Crawler - Location: " + location.toString()));
+        httpResponse.getHead().getStatusCode().ifPresent(code -> System.out.println("Crawler - Status code: " + code.toString()));
+        httpResponse.getHead().getModifiedTime().ifPresent(time -> System.out.println("Crawler - Modified time: " + time.toString()));
+        httpResponse.getHead().getRedirectTo().ifPresent(location -> System.out.println("Crawler - Location: " + location.toString()));
+
         return httpResponse;
     }
 

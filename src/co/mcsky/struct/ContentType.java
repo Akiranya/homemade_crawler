@@ -6,7 +6,7 @@ import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 
 /**
- * See <a href="https://www.rfc-editor.org/rfc/rfc1945.html#section-10.5">RFC
+ * Represents http Content-Type. See <a href="https://www.rfc-editor.org/rfc/rfc1945.html#section-10.5">RFC
  * 1945 10.5</a>.
  */
 public enum ContentType {
