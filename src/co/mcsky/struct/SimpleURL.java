@@ -22,7 +22,7 @@ public class SimpleURL {
     private final String fragment;
 
     /**
-     * Creates a http URL from string representation.
+     * Creates http URL from string representation.
      */
     public SimpleURL(String spec) {
         // Debugger for this regex: https://regex101.com/r/Zx74z0/16

@@ -87,9 +87,10 @@ public class SimpleCrawler {
         // Verbose
         System.out.println("Crawler - Sec: " + LocalDateTime.now().getSecond());
         System.out.println("Crawler - URL: " + url.toString());
-        httpResponse.getHead().getStatusCode().ifPresent(code -> System.out.println("Crawler - Status code: " + code.toString()));
-        httpResponse.getHead().getModifiedTime().ifPresent(time -> System.out.println("Crawler - Modified time: " + time.toString()));
-        httpResponse.getHead().getRedirectTo().ifPresent(location -> System.out.println("Crawler - Location: " + location.toString()));
+        httpResponse.getHead().getStatusCode().ifPresent(c -> System.out.println("Crawler - Status code: " + c.toString()));
+        httpResponse.getHead().getContentType().ifPresent(t -> System.out.println("Crawler - Content type: " + t.toString()));
+        httpResponse.getHead().getModifiedTime().ifPresent(t -> System.out.println("Crawler - Modified time: " + t.toString()));
+        httpResponse.getHead().getRedirectTo().ifPresent(l -> System.out.println("Crawler - Location: " + l.toString()));
 
         return httpResponse;
     }

@@ -14,7 +14,7 @@ import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 
 /**
- * Represents a http response. The response may or may not exist, depending on
+ * Represents http response. The response may or may not exist, depending on
  * whether the {@link SimpleURL} points to a valid http server or not, at the
  * instantiation of this class.
  *
