@@ -41,6 +41,10 @@ public class SimpleCrawler {
      * @return a {@link SimpleHttpResponse} object obtained from the {@code URL}
      */
     public SimpleHttpResponse request(SimpleURL url) {
+        // Verbose
+        System.out.println("Crawler - Sec: " + LocalDateTime.now().getSecond());
+        System.out.println("Crawler - URL: " + url.toString());
+
         var httpResponse = new SimpleHttpResponse(url, null, false);
         var httpRequest = String.format("GET %s HTTP/1.0\r\n\r\n", url.getPath());
 
@@ -85,8 +89,6 @@ public class SimpleCrawler {
         }
 
         // Verbose
-        System.out.println("Crawler - Sec: " + LocalDateTime.now().getSecond());
-        System.out.println("Crawler - URL: " + url.toString());
         httpResponse.getHead().getStatusCode().ifPresent(c -> System.out.println("Crawler - Status code: " + c.toString()));
         httpResponse.getHead().getContentType().ifPresent(t -> System.out.println("Crawler - Content type: " + t.toString()));
         httpResponse.getHead().getModifiedTime().ifPresent(t -> System.out.println("Crawler - Modified time: " + t.toString()));
