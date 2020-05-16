@@ -29,53 +29,87 @@ public enum StatusCode {
     }
 
     public static StatusCode matchCode(int code) {
-
-        return switch (code) {
-            case 200 -> OK;
-            case 201 -> CREATED;
-            case 202 -> ACCEPTED;
-            case 204 -> NO_CONTENT;
-            case 301 -> MOVED_PERMANENTLY;
-            case 302 -> MOVED_TEMPORARILY;
-            case 304 -> NOT_MODIFIED;
-            case 400 -> BAD_REQUEST;
-            case 401 -> UNAUTHORIZED;
-            case 403 -> FORBIDDEN;
-            case 404 -> NOT_FOUND;
-            case 500 -> INTERNAL_SERVER_ERROR;
-            case 501 -> NOT_IMPLEMENTED;
-            case 502 -> BAD_GATEWAY;
-            case 503 -> SERVICE_UNAVAILABLE;
-            default -> throw new IllegalStateException("Undefined status code: " + code);
-        };
+        switch (code) {
+            case 200:
+                return OK;
+            case 201:
+                return CREATED;
+            case 202:
+                return ACCEPTED;
+            case 204:
+                return NO_CONTENT;
+            case 301:
+                return MOVED_PERMANENTLY;
+            case 302:
+                return MOVED_TEMPORARILY;
+            case 304:
+                return NOT_MODIFIED;
+            case 400:
+                return BAD_REQUEST;
+            case 401:
+                return UNAUTHORIZED;
+            case 403:
+                return FORBIDDEN;
+            case 404:
+                return NOT_FOUND;
+            case 500:
+                return INTERNAL_SERVER_ERROR;
+            case 501:
+                return NOT_IMPLEMENTED;
+            case 502:
+                return BAD_GATEWAY;
+            case 503:
+                return SERVICE_UNAVAILABLE;
+            default:
+                throw new IllegalStateException("Undefined status code: " + code);
+        }
     }
 
     public boolean status20x() {
-        return switch (this) {
-            case OK, CREATED, ACCEPTED, NO_CONTENT -> true;
-            default -> false;
-        };
+        switch (this) {
+            case OK:
+            case CREATED:
+            case ACCEPTED:
+            case NO_CONTENT:
+                return true;
+            default:
+                return false;
+        }
     }
 
     public boolean status30x() {
-        return switch (this) {
-            case MOVED_PERMANENTLY, MOVED_TEMPORARILY, NOT_MODIFIED -> true;
-            default -> false;
-        };
+        switch (this) {
+            case MOVED_PERMANENTLY:
+            case MOVED_TEMPORARILY:
+            case NOT_MODIFIED:
+                return true;
+            default:
+                return false;
+        }
     }
 
     public boolean status40x() {
-        return switch (this) {
-            case BAD_REQUEST, NOT_FOUND, FORBIDDEN, UNAUTHORIZED -> true;
-            default -> false;
-        };
+        switch (this) {
+            case BAD_REQUEST:
+            case NOT_FOUND:
+            case FORBIDDEN:
+            case UNAUTHORIZED:
+                return true;
+            default:
+                return false;
+        }
     }
 
     public boolean status50x() {
-        return switch (this) {
-            case INTERNAL_SERVER_ERROR, NOT_IMPLEMENTED, BAD_GATEWAY, SERVICE_UNAVAILABLE -> true;
-            default -> false;
-        };
+        switch (this) {
+            case INTERNAL_SERVER_ERROR:
+            case NOT_IMPLEMENTED:
+            case BAD_GATEWAY:
+            case SERVICE_UNAVAILABLE:
+                return true;
+            default:
+                return false;
+        }
     }
 
     @Override
